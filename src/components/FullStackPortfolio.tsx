@@ -30,7 +30,7 @@ type FullStackPortfolioProps = {
 
 export default function FullStackPortfolio({
   name = 'Amadou Jarju',
-  title = 'Cloud Engineer | Full Stack Developer',
+  title = 'Cloud Engineer | Software Engineer',
   location = 'London, United Kingdom',
   email = 'amsjarju99@gmail.com',
   githubUrl = 'https://github.com/Jolaboy',
@@ -325,9 +325,9 @@ export default function FullStackPortfolio({
             <h1>{title}</h1>
             <p className="lead">
               I’m a multi‑disciplinary engineer working at the intersection of cloud infrastructure, full‑stack development, and data science. My focus is building scalable, secure, and high‑performing systems that solve real business problems.
-I specialise in AWS cloud engineering, designing and deploying cloud‑native architectures using services like EC2, Lambda, S3, RDS, VPC, and IaC tooling. Alongside this, I build end‑to‑end applications using modern full‑stack technologies and apply data‑driven approaches to optimise performance, automate workflows, and uncover insights.
-What drives me is the ability to turn complex challenges into elegant, reliable solutions — whether that’s deploying a distributed system, engineering a seamless user experience, or building models that transform raw data into actionable intelligence.
-I’m always open to collaborating on cloud projects, scalable app development, and data‑centric solutions that push technology forward.
+              I specialise in AWS cloud engineering, designing and deploying cloud‑native architectures using services like EC2, Lambda, S3, RDS, VPC, and IaC tooling. Alongside this, I build end‑to‑end applications using modern full‑stack technologies and apply data‑driven approaches to optimise performance, automate workflows, and uncover insights.
+              What drives me is the ability to turn complex challenges into elegant, reliable solutions — whether that’s deploying a distributed system, engineering a seamless user experience, or building models that transform raw data into actionable intelligence.
+              I’m always open to collaborating on cloud projects, scalable app development, and data‑centric solutions that push technology forward.
             </p>
             <div className="badge-row" aria-label="Core skills">
               <span className="badge">Cloud Dev - AWS, Azure & GCP</span>
@@ -337,7 +337,7 @@ I’m always open to collaborating on cloud projects, scalable app development, 
               <span className="badge">Node/Express.js</span>
               <span className="badge">C# & .NET Core</span>
               <span className="badge">.NET Core</span>
-              <span className="badge">SQL</span>
+              <span className="badge">SQL & Databases</span>
               <span className="badge">Git & GitHub</span>
               <span className="badge">Agile & Scrum</span>
             </div>
