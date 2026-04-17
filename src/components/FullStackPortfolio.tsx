@@ -348,6 +348,11 @@ I’m always open to collaborating on cloud projects, scalable app development, 
               <a className="btn btn-outline btn" href={linkedinUrl} target="_blank" rel="noreferrer">
                 <LinkedInIcon /> LinkedIn
               </a>
+              {email && (
+                <a className="btn btn-outline btn" href={`mailto:${email}`}>
+                  Email
+                </a>
+              )}
               {resumeUrl && resumeUrl !== '#' && (
                 <a className="btn btn-outline btn" href={resumeUrl} target="_blank" rel="noreferrer">
                   Download CV
