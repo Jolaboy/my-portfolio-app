@@ -12,6 +12,10 @@ type ContactBody = {
   message?: string;
 };
 
+function sanitizeHeaderValue(input: string) {
+  return input.replace(/[\r\n]+/g, ' ').trim();
+}
+
 function escapeHtml(input: string) {
   return input
     .replace(/&/g, '&amp;')
@@ -55,10 +59,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const safeName = escapeHtml(name);
   const safeEmail = escapeHtml(email);
 
+  const replyTo = `${sanitizeHeaderValue(name)} <${sanitizeHeaderValue(email)}>`;
+  const safeSubject = subject ? sanitizeHeaderValue(subject) : '';
+
   const mailOptions = {
-    from: `${name} <${email}>`,
+    from: `Portfolio Contact <${SMTP_USER}>`,
+    replyTo,
     to: TO_EMAIL || SMTP_USER,
-    subject: subject || `New message from portfolio: ${name}`,
+    subject: safeSubject || `New message from portfolio: ${sanitizeHeaderValue(name)}`,
     text: message,
     html: `<p>${safeMessageHtml}</p><hr/><p>From: ${safeName} &lt;${safeEmail}&gt;</p>`,
   };
@@ -74,16 +82,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       message,
     };
 
-    const resWithIO = res as NextApiResponseServerIO;
-    if (!resWithIO.socket.server.io) {
-      const httpServer = resWithIO.socket.server as unknown as HTTPServer;
-      resWithIO.socket.server.io = new IOServer(httpServer, {
-        path: '/api/socketio',
-        addTrailingSlash: false,
-      });
-    }
+    // Netlify serverless functions cannot host long-lived Socket.IO servers.
+    if (!process.env.NETLIFY) {
+      const resWithIO = res as NextApiResponseServerIO;
+      if (!resWithIO.socket.server.io) {
+        const httpServer = resWithIO.socket.server as unknown as HTTPServer;
+        resWithIO.socket.server.io = new IOServer(httpServer, {
+          path: '/api/socketio',
+          addTrailingSlash: false,
+        });
+      }
 
-    resWithIO.socket.server.io.emit('new_message', payload);
+      resWithIO.socket.server.io.emit('new_message', payload);
+    }
 
     res.status(200).json({ ok: true });
   } catch (err) {

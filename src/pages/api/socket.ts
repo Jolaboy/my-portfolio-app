@@ -11,6 +11,11 @@ export const config = {
 };
 
 export default function handler(req: NextApiRequest, res: NextApiResponseServerIO) {
+  if (process.env.NETLIFY) {
+    res.status(501).json({ error: 'realtime_not_supported_on_netlify' });
+    return;
+  }
+
   if (res.socket.server.io) {
     res.status(200).end();
     return;

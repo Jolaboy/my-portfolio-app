@@ -19,10 +19,21 @@ type ContactMessage = {
 export default function AdminPanel({ apiUrl }: AdminPanelProps) {
   const base = apiUrl ?? process.env.NEXT_PUBLIC_API_URL ?? '';
 
+  const [realtimeDisabled, setRealtimeDisabled] = useState<boolean | null>(null);
+
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
+    const disabledByEnv = process.env.NEXT_PUBLIC_DISABLE_LIVE_MESSAGES === 'true';
+    const disabledByHost = typeof window !== 'undefined' && window.location.hostname.includes('netlify.app');
+    setRealtimeDisabled(disabledByEnv || disabledByHost);
+  }, []);
+
+  useEffect(() => {
+    if (realtimeDisabled === null) return;
+    if (realtimeDisabled) return;
+
     let socket: ReturnType<typeof io> | null = null;
 
     (async () => {
@@ -41,7 +52,21 @@ export default function AdminPanel({ apiUrl }: AdminPanelProps) {
     return () => {
       socket?.disconnect();
     };
-  }, [base]);
+  }, [base, realtimeDisabled]);
+
+  if (realtimeDisabled) {
+    return (
+      <div className="card mt-3">
+        <div className="flex items-center justify-between">
+          <h3 className="m-0">Live messages</h3>
+          <div className="text-orange-600 text-sm">disabled</div>
+        </div>
+        <div className="mt-3 muted">
+          Live message streaming (Socket.IO) isn’t supported on Netlify deployments. The contact form still works.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="card mt-3">
