@@ -44,11 +44,11 @@ export default function FullStackPortfolio({
   const skills = useMemo<SkillsMap>(
     () => ({
       'System Design & UI/UX': ['Requirements Gathering', 'Design Use Cases & User Stories', 'Wireframing', 'Prototyping', 'Responsive Design'],
-      Frontend: ['JavaScript/TypeScript','React/Next.js', 'Tailwind/Bootsrap'],
-      Backend: ['Python','C# & .NET Core', 'Node/Express.js', 'GraphQL', 'REST APIs'],
+      Frontend: ['JavaScript/TypeScript', 'React/Next.js', 'Tailwind/Bootstrap'],
+      Backend: ['Python', 'C# & .NET Core', 'Node/Express.js', 'GraphQL', 'REST APIs'],
       'SQL & NoSQL': ['Postgres', 'SQL Server / MySQL', 'MongoDB', 'Data Modelling', 'Query Optimisation'],
       'Version Control': ['Git', 'GitHub', 'Branching & Pull Requests'],
-      'Project Management': ['Agile / Scrum', 'AWS/Azure DevOps', 'Stakeholder Comms'],
+      'Project Management': ['Agile / Scrum', 'Azure DevOps', 'Stakeholder Comms'],
     }),
     []
   );
@@ -194,7 +194,9 @@ export default function FullStackPortfolio({
                     display: grid; grid-template-columns: 1.3fr .7fr; gap: 2rem; align-items: center;
                 }
                 .hero h1 { margin: 0 0 .5rem; font-size: clamp(1.8rem, 4.2vw, 3rem); color: var(--text); }
-                .hero p.lead { margin: .25rem 0 1.25rem; color: var(--muted); font-size: 1.05rem; }
+                .hero .lead { margin: .25rem 0 1.25rem; color: var(--muted); font-size: 1.05rem; }
+                .hero .lead p { margin: 0 0 .75rem; }
+                .hero .lead p:last-child { margin-bottom: 0; }
                 .badge-row { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1rem 0 1.25rem; }
                 .badge {
                     background: var(--chip);
@@ -323,12 +325,20 @@ export default function FullStackPortfolio({
         <div className="container hero-grid">
           <div>
             <h1>{title}</h1>
-            <p className="lead">
-              I’m a multi‑disciplinary engineer working at the intersection of cloud infrastructure, full‑stack development, and data science. My focus is building scalable, secure, and high‑performing systems that solve real business problems.
-              I specialise in AWS cloud engineering, designing and deploying cloud‑native architectures using services like EC2, Lambda, S3, RDS, VPC, and IaC tooling. Alongside this, I build end‑to‑end applications using modern full‑stack technologies and apply data‑driven approaches to optimise performance, automate workflows, and uncover insights.
-              What drives me is the ability to turn complex challenges into elegant, reliable solutions — whether that’s deploying a distributed system, engineering a seamless user experience, or building models that transform raw data into actionable intelligence.
-              I’m always open to collaborating on cloud projects, scalable app development, and data‑centric solutions that push technology forward.
-            </p>
+            <div className="lead">
+              <p>
+                I’m a multi‑disciplinary engineer working at the intersection of cloud infrastructure, full‑stack development, and data science. My focus is building scalable, secure, and high‑performing systems that solve real business problems.
+              </p>
+              <p>
+                I specialise in AWS cloud engineering, designing and deploying cloud‑native architectures using services like EC2, Lambda, S3, RDS, VPC, and IaC tooling. Alongside this, I build end‑to‑end applications using modern full‑stack technologies and apply data‑driven approaches to optimise performance, automate workflows, and uncover insights.
+              </p>
+              <p>
+                What drives me is the ability to turn complex challenges into elegant, reliable solutions — whether that’s deploying a distributed system, engineering a seamless user experience, or building models that transform raw data into actionable intelligence.
+              </p>
+              <p>
+                I’m always open to collaborating on cloud projects, scalable app development, and data‑centric solutions that push technology forward.
+              </p>
+            </div>
             <div className="badge-row" aria-label="Core skills">
               <span className="badge">Cloud Dev - AWS, Azure & GCP</span>
               <span className="badge">HTML, React/Next.js</span>
@@ -336,7 +346,6 @@ export default function FullStackPortfolio({
               <span className="badge">JavaScript/TypeScript</span>
               <span className="badge">Node/Express.js</span>
               <span className="badge">C# & .NET Core</span>
-              <span className="badge">.NET Core</span>
               <span className="badge">SQL & Databases</span>
               <span className="badge">Git & GitHub</span>
               <span className="badge">Agile & Scrum</span>
@@ -415,7 +424,7 @@ export default function FullStackPortfolio({
                     <a className="btn" href={p.github} target="_blank" rel="noreferrer">
                       <GitHubIcon /> Code
                     </a>
-                    {p.live ? (
+                    {p.live && p.live.startsWith('http') ? (
                       <a className="btn" href={p.live} target="_blank" rel="noreferrer">
                         Live Demo
                       </a>
