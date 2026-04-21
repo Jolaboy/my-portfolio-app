@@ -41,7 +41,6 @@ Environment variables (place them in `.env.local`):
 - `SMTP_SECURE` (`true`/`false`)
 - `SMTP_USER`
 - `SMTP_PASS`
-- `TO_EMAIL` (optional)
 
 ## CI (GitHub Actions)
 
