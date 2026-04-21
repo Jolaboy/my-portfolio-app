@@ -20,14 +20,11 @@ Start here to understand how the app is put together:
 - Main UI
   - [`src/components/FullStackPortfolio.tsx`](src/components/FullStackPortfolio.tsx) — single-page portfolio UI (theme + sections)
   - [`src/components/ContactForm.tsx`](src/components/ContactForm.tsx) — contact form UI (POSTs to `/api/contact`)
-  - [`src/components/AdminPanel.tsx`](src/components/AdminPanel.tsx) — optional live message panel (Socket.IO; disabled on Netlify)
 
 - API routes
   - [`src/pages/api/contact.ts`](src/pages/api/contact.ts) — SMTP email sender (Nodemailer)
-  - [`src/pages/api/socket.ts`](src/pages/api/socket.ts) — Socket.IO server bootstrap (local/dev environments)
 
 - Shared types
-  - [`src/types/next.ts`](src/types/next.ts) — Next.js response type extended with Socket.IO
   - [`src/types/styles.d.ts`](src/types/styles.d.ts) — TypeScript module declarations for styles
 
 ## Contact form (SMTP)
@@ -66,4 +63,4 @@ Steps:
 2) In Netlify: **Add new site** → **Import from Git** → select the repo.
 3) In Netlify site settings, add the SMTP environment variables listed above.
 
-Note: the Socket.IO-based realtime admin panel typically won’t work reliably on Netlify (serverless functions aren’t a long-lived WebSocket host). The main site and contact form can still be deployed.
+Note: This site is designed to work reliably on Netlify. The contact form uses a serverless API route and does not rely on long-lived WebSocket servers.

@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from 'react';
 
-import AdminPanel from './AdminPanel';
 import CompatibilityNotice from './CompatibilityNotice';
 import ContactForm from './ContactForm';
 
@@ -50,7 +49,7 @@ type FullStackPortfolioProps = {
 export default function FullStackPortfolio({
   name = 'Amadou Jarju',
   title = 'Cloud|Software\u00A0Engineer',
-  location = 'London, United Kingdom',
+  location = 'Nottingham, United Kingdom',
   email = 'amsjarju99@gmail.com',
   githubUrl = 'https://github.com/Jolaboy',
   linkedinUrl = 'https://www.linkedin.com/in/amadou-jarju/',
@@ -59,9 +58,6 @@ export default function FullStackPortfolio({
 }: FullStackPortfolioProps) {
   // Theme is controlled entirely by a `data-theme` attribute and CSS variables.
   const [theme, setTheme] = useState<Theme>('light');
-
-  // Optional "Admin" panel shows live contact submissions when Socket.IO is supported.
-  const [showAdmin, setShowAdmin] = useState(false);
 
   // Skills are memoized to avoid recreating arrays on every render.
   const skills = useMemo<SkillsMap>(
@@ -300,6 +296,11 @@ export default function FullStackPortfolio({
                 .hero-aside {
                     display: grid; place-items: center;
                 }
+                .location {
+                  color: var(--text);
+                  font-weight: 800;
+                  letter-spacing: -0.01em;
+                }
 
                 section { padding: 3rem 0; }
                 main section:nth-of-type(even) {
@@ -490,7 +491,7 @@ export default function FullStackPortfolio({
             <div className="avatar" aria-label={`${name} avatar`}>
               {initials(name)}
             </div>
-            <div className="muted mt-2.5">
+            <div className="location mt-2.5">
               {location}
             </div>
           </div>
@@ -643,12 +644,7 @@ export default function FullStackPortfolio({
                 <a className="btn" href={linkedinUrl} target="_blank" rel="noreferrer">
                   <LinkedInIcon /> LinkedIn
                 </a>
-                <button className="btn ml-auto" onClick={() => setShowAdmin((s) => !s)}>
-                  {showAdmin ? 'Hide' : 'Show'} Admin
-                </button>
               </div>
-              {/* Admin panel is hidden by default because it connects to Socket.IO when enabled. */}
-              {showAdmin && <AdminPanel />}
             </div>
           </div>
         </section>
