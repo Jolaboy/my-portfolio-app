@@ -102,19 +102,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       message,
     };
 
-    // Netlify serverless functions cannot host long-lived Socket.IO servers.
-    if (!process.env.NETLIFY) {
-      const resWithIO = res as NextApiResponseServerIO;
-      if (!resWithIO.socket.server.io) {
-        // Lazily initialize the Socket.IO server on the first request.
-        const httpServer = resWithIO.socket.server as unknown as HTTPServer;
-        resWithIO.socket.server.io = new IOServer(httpServer, {
-          path: '/api/socketio',
-          addTrailingSlash: false,
-        });
-      }
+    // Best-effort realtime emit for local development only.
+    // In many serverless environments (including Netlify), `res.socket` may be null/undefined
+    // and long-lived Socket.IO servers are not supported. Emitting must never fail the request.
+    try {
+      const resWithIO = res as unknown as Partial<NextApiResponseServerIO>;
+      const socketServer = (resWithIO.socket as unknown as { server?: (HTTPServer & { io?: IOServer }) | null } | undefined)?.server;
 
-      resWithIO.socket.server.io.emit('new_message', payload);
+      // Skip in Netlify environments and when no underlying HTTP server is available.
+      if (!process.env.NETLIFY && socketServer) {
+        if (!socketServer.io) {
+          socketServer.io = new IOServer(socketServer, {
+            path: '/api/socketio',
+            addTrailingSlash: false,
+          });
+        }
+
+        socketServer.io.emit('new_message', payload);
+      }
+    } catch (emitErr) {
+      // eslint-disable-next-line no-console
+      console.warn('Realtime emit skipped/failed', emitErr);
     }
 
     res.status(200).json({ ok: true });

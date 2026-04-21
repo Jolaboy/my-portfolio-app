@@ -25,13 +25,21 @@ export default function handler(req: NextApiRequest, res: NextApiResponseServerI
     return;
   }
 
+  // Some serverless runtimes do not expose a Node HTTP server via `res.socket.server`.
+  // Without it, Socket.IO cannot be attached.
+  const httpServerMaybe = (res.socket as unknown as { server?: HTTPServer | null } | null)?.server;
+  if (!httpServerMaybe) {
+    res.status(501).json({ error: 'realtime_not_supported' });
+    return;
+  }
+
   if (res.socket.server.io) {
     // Server already initialized.
     res.status(200).end();
     return;
   }
 
-  const httpServer: HTTPServer = (res.socket as unknown as { server: HTTPServer }).server;
+  const httpServer: HTTPServer = httpServerMaybe;
 
   const io = new IOServer(httpServer, {
     path: '/api/socketio',
