@@ -34,7 +34,12 @@ Start here to understand how the app is put together:
 
 This app sends contact email via `/api/contact`.
 
-Environment variables (place them in `.env.local`):
+Environment variables (place them in `.env.local`).
+
+Templates:
+
+- `env.local.example.txt` (recommended starting point for local)
+- `env.example.txt` (generic reference)
 
 - `SMTP_HOST`
 - `SMTP_PORT`
