@@ -71,7 +71,7 @@ export default function FullStackPortfolio({
       Backend: ['Databases(SQL & NoSQL)', 'Python  (FastAPI)', 'C# & .NET Core', 'Node/Express.js', 'APIs (REST, GraphQL, gRPC)'],
       'System Design & UI/UX': ['Requirements Gathering', 'Design Use Cases & User Stories', 'Wireframing', 'Prototyping', 'Responsive Design'],
       'Database Management': ['Schema Design', 'Migrations & Seeding', 'Performance Tuning', 'Backup & Recovery'],
-      'Version Control & Project Management': ['Git', 'GitHub', 'Branching & Pull Requests','Agile / Scrum', 'Azure DevOps', 'Stakeholder Comms'],
+      'Version Control & Project Management': ['Git', 'GitHub', 'Branching & Pull Requests', 'GitHub Actions(CI/CD)', 'Agile / Scrum',  'Stakeholder Comms'],
     }),
     []
   );
@@ -150,13 +150,14 @@ export default function FullStackPortfolio({
                     --cardBg: #ffffff;
                     --border: #e5e7eb;
                     background: var(--pageBg);
-                  color: var(--text);
+                    color: var(--text);
+                    text-rendering: optimizeLegibility;
                 }
                 .portfolio[data-theme="light"] {
                     --pageBg: #f6f8fa;
                     --elev: #ffffff;
                     --text: #0b1220;
-                    --muted: #5b6773;
+                    --muted: #44515e;
                     --primary: #2563eb;
                     --accent: #0ea5e9;
                     --cardBg: #ffffff;
@@ -168,7 +169,7 @@ export default function FullStackPortfolio({
                     --pageBg: #0b1220;
                     --elev: #0f172a;
                     --text: #e6edf3;
-                    --muted: #93a1b3;
+                    --muted: #b5c2d6;
                     --primary: #60a5fa;
                     --accent: #22d3ee;
                     --cardBg: #0b1220;
@@ -179,16 +180,32 @@ export default function FullStackPortfolio({
 
                 * { box-sizing: border-box; }
                 html, body, #root { height: 100%; }
-                body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji","Segoe UI Emoji"; }
+                html { scroll-behavior: smooth; }
+                body {
+                  margin: 0;
+                  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji","Segoe UI Emoji";
+                  font-size: 16px;
+                  line-height: 1.6;
+                  -webkit-font-smoothing: antialiased;
+                  text-rendering: optimizeLegibility;
+                  font-kerning: normal;
+                }
+
+                h1, h2, h3 { font-weight: 800; }
 
                 a { color: inherit; text-decoration: none; }
                 img { max-width: 100%; display: block; }
+
+                :where(a, button, input, textarea):focus-visible {
+                  outline: 2px solid var(--accent);
+                  outline-offset: 2px;
+                }
 
                 .container {
                     width: 100%;
                     max-width: 1100px;
                     margin: 0 auto;
-                    padding: 0 1.25rem;
+                  padding: 0 1.25rem;
                 }
 
                 .nav {
@@ -212,25 +229,46 @@ export default function FullStackPortfolio({
                 }
                 .nav-links { display: flex; gap: 1rem; }
                 .nav-links a {
-                    color: var(--muted); font-weight: 600; padding: .5rem .75rem; border-radius: .5rem;
+                  color: var(--muted);
+                  font-weight: 700;
+                  padding: .5rem .75rem;
+                  border-radius: .6rem;
+                  border: 1px solid transparent;
                 }
-                .nav-links a:hover { color: var(--text); background: rgba(127,127,127,.08); }
+                .nav-links a:hover { color: var(--text); background: var(--chip); border-color: var(--chipBorder); }
                 .theme-toggle {
                     border: 1px solid var(--border);
                     background: transparent; color: var(--text);
                     border-radius: .6rem; padding: .45rem .7rem; cursor: pointer;
                 }
+                .theme-toggle:hover { background: var(--chip); border-color: var(--chipBorder); }
 
                 .hero {
                     background: linear-gradient(180deg, rgba(37,99,235,.08), transparent 50%),
                                             linear-gradient(180deg, rgba(34,211,238,.08), transparent 30%);
-                    padding: 3.5rem 0 2rem;
+                  padding: 4.25rem 0 2.25rem;
+                  border-bottom: 1px solid var(--border);
                 }
                 .hero-grid {
                     display: grid; grid-template-columns: 1.3fr .7fr; gap: 2rem; align-items: center;
                 }
-                .hero h1 { margin: 0 0 .5rem; font-size: clamp(1.5rem, 4.2vw, 3rem); color: var(--text); white-space: nowrap; }
-                .hero .lead { margin: .25rem 0 1.25rem; color: var(--muted); font-size: 1.05rem; }
+                .hero h1 {
+                  margin: 0 0 .6rem;
+                  font-size: clamp(1.6rem, 4.2vw, 3.05rem);
+                  color: var(--text);
+                  white-space: nowrap;
+                  letter-spacing: -0.03em;
+                  line-height: 1.12;
+                  text-wrap: balance;
+                }
+                .hero .lead {
+                  margin: .25rem 0 1.35rem;
+                  color: var(--muted);
+                  font-size: 1.075rem;
+                  line-height: 1.8;
+                  max-width: 72ch;
+                  font-weight: 500;
+                }
                 .hero .lead p { margin: 0 0 .75rem; }
                 .hero .lead p:last-child { margin-bottom: 0; }
                 .badge-row { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1rem 0 1.25rem; }
@@ -246,11 +284,13 @@ export default function FullStackPortfolio({
                     padding: .6rem .9rem; font-weight: 700; border-radius: .65rem; border: 1px solid var(--border);
                     color: var(--text); background: var(--elev);
                 }
+                .btn:hover { background: var(--chip); border-color: var(--chipBorder); }
                 .btn-primary {
                     background: linear-gradient(135deg, var(--primary), var(--accent));
                     color: white; border: none;
                 }
-                .btn-outline:hover { background: rgba(127,127,127,.08); }
+                .btn-primary:hover { opacity: .96; }
+                .btn:active { transform: translateY(1px); }
                 .avatar {
                     width: 160px; height: 160px; border-radius: 24px; background: var(--elev);
                     border: 1px solid var(--border); display: grid; place-items: center; font-size: 3rem; font-weight: 800;
@@ -261,17 +301,44 @@ export default function FullStackPortfolio({
                     display: grid; place-items: center;
                 }
 
-                section { padding: 2rem 0; }
-                .section-head { margin-bottom: 1rem; }
-                .section-head h2 { margin: 0; font-size: 1.6rem; color: var(--text); }
-                .section-head p { margin: .25rem 0 0; color: var(--muted); }
+                section { padding: 3rem 0; }
+                main section:nth-of-type(even) {
+                  background: var(--elev);
+                  border-top: 1px solid var(--border);
+                  border-bottom: 1px solid var(--border);
+                }
+                .section-head { margin-bottom: 1.1rem; }
+                .section-head h2 {
+                  margin: 0;
+                  font-size: 1.65rem;
+                  color: var(--text);
+                  display: inline-block;
+                  position: relative;
+                  padding-bottom: .35rem;
+                  letter-spacing: -0.01em;
+                  line-height: 1.2;
+                  text-wrap: balance;
+                }
+                .section-head h2::after {
+                  content: "";
+                  position: absolute;
+                  left: 0;
+                  bottom: 0;
+                  height: 3px;
+                  width: 72px;
+                  border-radius: 999px;
+                  background: linear-gradient(90deg, var(--primary), var(--accent));
+                }
+                .section-head p { margin: .25rem 0 0; color: var(--muted); font-weight: 500; }
 
                 .skills-grid {
                     display: grid; gap: 1rem; grid-template-columns: repeat(2, minmax(0,1fr));
                 }
                 .card {
-                    background: var(--cardBg); border: 1px solid var(--border);
-                    border-radius: .9rem; padding: 1rem;
+                  background: linear-gradient(180deg, var(--elev), var(--cardBg));
+                  border: 1px solid var(--border);
+                  border-radius: 1rem;
+                  padding: 1.1rem;
                 }
                 .card h3 { margin: 0 0 .75rem; font-size: 1rem; color: var(--text); }
                 .chips { display: flex; flex-wrap: wrap; gap: .5rem; }
@@ -284,11 +351,12 @@ export default function FullStackPortfolio({
                 .projects {
                     display: grid; gap: 1rem; grid-template-columns: repeat(3, minmax(0,1fr));
                 }
+                .project { display: flex; flex-direction: column; }
                 .project h3 { margin: 0 0 .5rem; }
-                .project p { margin: 0 0 .7rem; color: var(--muted); min-height: 42px; }
+                .project p { margin: 0 0 .7rem; color: var(--muted); min-height: 42px; line-height: 1.7; font-weight: 500; }
                 .techline { display: flex; flex-wrap: wrap; gap: .4rem; margin: .6rem 0 .9rem; }
                 .techline span { font-size: .78rem; padding: .28rem .5rem; border-radius: .4rem; background: var(--chip); border: 1px solid var(--chipBorder); font-weight: 600; color: var(--text); }
-                .links { display: flex; gap: .6rem; }
+                .links { display: flex; gap: .6rem; margin-top: auto; }
 
                 .timeline { border-left: 2px solid var(--border); padding-left: 1rem; display: grid; gap: 1rem; }
                 .tl-item { position: relative; }
@@ -300,18 +368,39 @@ export default function FullStackPortfolio({
                 .tl-title { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; }
                 .tl-title strong { color: var(--text); }
                 .tl-title span { color: var(--muted); font-size: .9rem; }
-                .tl-body { color: var(--muted); margin-top: .3rem; }
+                .tl-body { color: var(--muted); margin-top: .3rem; line-height: 1.7; font-weight: 500; }
 
                 .contact-card { display: grid; gap: .75rem; }
                 .contact-row { display: flex; gap: .75rem; flex-wrap: wrap; }
                 .muted { color: var(--muted); }
 
                 footer {
-                    border-top: 1px solid var(--border); padding: 1.2rem 0; color: var(--muted); font-size: .95rem; margin-top: 1rem;
+                    border-top: 1px solid var(--border);
+                    background: var(--elev);
+                    padding: 1.35rem 0;
+                    color: var(--muted);
+                    font-size: .95rem;
+                    margin-top: 1rem;
+                    font-weight: 500;
                 }
+                .footer-row { align-items: center; }
+                .footer-name { color: var(--text); font-weight: 800; }
 
                 .social { display: inline-flex; gap: .5rem; align-items: center; }
-                .icon { width: 18px; height: 18px; display: inline-block; }
+                .social a {
+                  width: 40px;
+                  height: 40px;
+                  display: inline-flex;
+                  align-items: center;
+                  justify-content: center;
+                  border-radius: .85rem;
+                  border: 1px solid var(--chipBorder);
+                  background: var(--chip);
+                  color: var(--text);
+                }
+                .social a:hover { color: var(--text); border-color: var(--chipBorder); }
+                .social a:active { transform: translateY(1px); }
+                .icon { width: 20px; height: 20px; display: inline-block; }
 
                 @media (max-width: 980px) {
                     .projects { grid-template-columns: repeat(2, minmax(0,1fr)); }
@@ -366,16 +455,16 @@ export default function FullStackPortfolio({
             <h1>{title}</h1>
             <div className="lead">
               <p>
-                I’m a multi‑disciplinary engineer working at the intersection of cloud infrastructure, full‑stack development, and data science. My focus is building scalable, secure, and high‑performing systems that solve real business problems.
+                I’m a cloud and full‑stack engineer who builds scalable, secure, and high‑performing systems — from infrastructure to user‑facing applications.
               </p>
               <p>
-                I specialise in AWS cloud engineering, designing and deploying cloud‑native architectures using services like EC2, Lambda, S3, RDS, VPC, and IaC tooling. Alongside this, I build end‑to‑end applications using modern full‑stack technologies and apply data‑driven approaches to optimise performance, automate workflows, and uncover insights.
+                My core strength is AWS cloud engineering (EC2, Lambda, S3, RDS, VPC) backed by Infrastructure as Code. I also deliver end‑to‑end web apps with modern full‑stack tooling and use data‑driven approaches to improve performance, automate workflows, and unlock insights.
               </p>
               <p>
-                What drives me is the ability to turn complex challenges into elegant, reliable solutions — whether that’s deploying a distributed system, engineering a seamless user experience, or building models that transform raw data into actionable intelligence.
+                I enjoy turning complex requirements into clean, reliable solutions — whether that’s designing cloud architecture, shipping a polished UI, or building robust APIs.
               </p>
               <p>
-                I’m always open to collaborating on cloud projects, scalable app development, and data‑centric solutions that push technology forward.
+                If you’re working on cloud projects, scalable app development, or data‑centric products, I’m always open to collaborating.
               </p>
             </div>
             <div className="cta-row">
@@ -454,7 +543,7 @@ export default function FullStackPortfolio({
                     </a>
                     {p.live && p.live.startsWith('http') ? (
                       <a className="btn" href={p.live} target="_blank" rel="noreferrer">
-                        Live Demo
+                        Website
                       </a>
                     ) : null}
                   </div>
@@ -566,8 +655,10 @@ export default function FullStackPortfolio({
       </main>
 
       <footer>
-        <div className="container flex justify-between gap-4 flex-wrap">
-          <div>© {year} {name}. All rights reserved.</div>
+        <div className="container footer-row flex justify-between gap-4 flex-wrap">
+          <div>
+            © {year} <span className="footer-name">{name}</span>. All rights reserved.
+          </div>
           <div className="social">
             <a href={githubUrl} target="_blank" rel="noreferrer" aria-label="GitHub">
               <GitHubIcon />
