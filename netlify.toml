@@ -4,6 +4,9 @@
 
 [build.environment]
   NODE_VERSION = "20"
+  # Netlify secrets scanning blocks builds if it finds the value of an env var in repo/build output.
+  # SMTP_USER is an email address that may also be displayed publicly on the site, so this can be a false positive.
+  SECRETS_SCAN_OMIT_KEYS = "SMTP_USER"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
