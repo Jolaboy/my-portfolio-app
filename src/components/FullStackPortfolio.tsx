@@ -3,12 +3,25 @@
 import { useMemo, useState } from 'react';
 
 import AdminPanel from './AdminPanel';
+import CompatibilityNotice from './CompatibilityNotice';
 import ContactForm from './ContactForm';
 
+/**
+ * Single-page portfolio UI.
+ *
+ * Notes for maintainers:
+ * - This component is intentionally self-contained (markup + a small CSS-in-JSX block)
+ *   to keep the project simple to deploy.
+ * - Theme is implemented via a `data-theme` attribute + CSS variables.
+ */
+
+/** UI theme modes supported by the portfolio container. */
 type Theme = 'light' | 'dark';
 
+/** Map of section heading -> list of skill "chips". */
 type SkillsMap = Record<string, string[]>;
 
+/** Project metadata rendered in the "Projects" section. */
 type Project = {
   title: string;
   description: string;
@@ -17,6 +30,7 @@ type Project = {
   live: string;
 };
 
+/** Public props for customizing the portfolio (all optional, with sensible defaults). */
 type FullStackPortfolioProps = {
   name?: string;
   title?: string;
@@ -28,9 +42,14 @@ type FullStackPortfolioProps = {
   projects?: Project[];
 };
 
+/**
+ * Main portfolio component.
+ *
+ * Defaults are filled so the app renders out-of-the-box without any data fetching.
+ */
 export default function FullStackPortfolio({
   name = 'Amadou Jarju',
-  title = 'Cloud Engineer | Software Engineer',
+  title = 'Cloud|Software\u00A0Engineer',
   location = 'London, United Kingdom',
   email = 'amsjarju99@gmail.com',
   githubUrl = 'https://github.com/Jolaboy',
@@ -38,21 +57,26 @@ export default function FullStackPortfolio({
   resumeUrl = '#',
   projects,
 }: FullStackPortfolioProps) {
+  // Theme is controlled entirely by a `data-theme` attribute and CSS variables.
   const [theme, setTheme] = useState<Theme>('light');
+
+  // Optional "Admin" panel shows live contact submissions when Socket.IO is supported.
   const [showAdmin, setShowAdmin] = useState(false);
 
+  // Skills are memoized to avoid recreating arrays on every render.
   const skills = useMemo<SkillsMap>(
     () => ({
-      'System Design & UI/UX': ['Requirements Gathering', 'Design Use Cases & User Stories', 'Wireframing', 'Prototyping', 'Responsive Design'],
+      'Cloud Engineering': ['AWS (EC2, Lambda, S3, RDS, VPC)', 'Azure (App Service, Functions, Storage)', 'GCP (Cloud Run, Cloud Storage)'],
       Frontend: ['JavaScript/TypeScript', 'React/Next.js', 'Tailwind/Bootstrap'],
-      Backend: ['Python', 'C# & .NET Core', 'Node/Express.js', 'GraphQL', 'REST APIs'],
-      'SQL & NoSQL': ['Postgres', 'SQL Server / MySQL', 'MongoDB', 'Data Modelling', 'Query Optimisation'],
-      'Version Control': ['Git', 'GitHub', 'Branching & Pull Requests'],
-      'Project Management': ['Agile / Scrum', 'Azure DevOps', 'Stakeholder Comms'],
+      Backend: ['Databases(SQL & NoSQL)', 'Python  (FastAPI)', 'C# & .NET Core', 'Node/Express.js', 'APIs (REST, GraphQL, gRPC)'],
+      'System Design & UI/UX': ['Requirements Gathering', 'Design Use Cases & User Stories', 'Wireframing', 'Prototyping', 'Responsive Design'],
+      'Database Management': ['Schema Design', 'Migrations & Seeding', 'Performance Tuning', 'Backup & Recovery'],
+      'Version Control & Project Management': ['Git', 'GitHub', 'Branching & Pull Requests','Agile / Scrum', 'Azure DevOps', 'Stakeholder Comms'],
     }),
     []
   );
 
+  // Default project list used when no `projects` prop is provided.
   const defaultProjects = useMemo<Project[]>(
     () => [
       {
@@ -71,10 +95,10 @@ export default function FullStackPortfolio({
         live: '',
       },
       {
-        title: 'Fareloom API',
-        description: 'This project showcases backend development and provides a robust API for managing fareloom data with secure endpoints and efficient data handling.',
-        tech: ['C#', '.NET Core', 'SQL Server', 'Entity Framework', 'Swagger UI'],
-        github: 'https://github.com/Jolaboy/C-Sharp-.NET-Projects/tree/master/LibraryManagementApp',
+        title: 'Student API',
+        description: 'This project showcases backend development and provides a robust API for managing student data with secure endpoints and efficient data handling.',
+        tech: ['C#', '.NET Core', 'Postgres', 'Entity Framework', 'Swagger UI'],
+        github: 'https://github.com/Jolaboy/C-Sharp-.NET-Projects/tree/main/StudentApi',
         live: '',
       },
       {
@@ -82,7 +106,7 @@ export default function FullStackPortfolio({
         description: 'This App tracks fantasy league statistics, manages teams, and calculates points using seeded data.',
         tech: ['C#', '.NET Core ', 'SQLite', 'Entity Framework'],
         github: 'https://github.com/Jolaboy/Basic-C-Sharp-Projects/tree/master/PremierLeagueFantasyApp/PremierLeagueFantasyApp',
-        live: 'https://your-demo-link.com/tasktracker',
+        live: '',
       },
       {
         title: 'Weather App',
@@ -92,21 +116,29 @@ export default function FullStackPortfolio({
         live: 'https://ggweather.netlify.app/',
       },
       {
-        title: 'EnterpriseEcom',
-        description: 'This repository showcases an enterprise e-commerce application built with C# and .NET Core.',
-        tech: ['C#', '.NET Core', 'SQL Server', 'Entity Framework', 'Bootstrap'],
-        github: 'https://github.com/Jolaboy/C-Sharp-.NET-Projects/tree/master/LibraryManagementApp',
+        title: 'SQL and Database Management',
+        description: 'A curated SQL Server portfolio with practical database projects for operations, ticketing, inventory, and business reporting.',
+        tech: ['T-SQL Scripting', 'Data Modelling', 'Stored Procedures', 'Database Design'],
+        github: 'https://github.com/Jolaboy/sql-and-database-projects',
         live: '',
       },
     ],
     []
   );
 
+  // Render either external projects passed in, or the local defaults.
   const items: Project[] = projects && projects.length ? projects : defaultProjects;
+
+  // Used in the footer for an always-current copyright.
   const year = new Date().getFullYear();
 
   return (
+    // `data-theme` drives the CSS variable set used by the inline styles.
     <div className="portfolio" data-theme={theme}>
+      {/*
+        CSS-in-JSX keeps the portfolio styles colocated with the component.
+        The design is implemented using CSS variables so light/dark theme toggling is fast.
+      */}
       <style>{`
                 :root {}
                 .portfolio {
@@ -118,6 +150,7 @@ export default function FullStackPortfolio({
                     --cardBg: #ffffff;
                     --border: #e5e7eb;
                     background: var(--pageBg);
+                  color: var(--text);
                 }
                 .portfolio[data-theme="light"] {
                     --pageBg: #f6f8fa;
@@ -129,6 +162,7 @@ export default function FullStackPortfolio({
                     --cardBg: #ffffff;
                     --border: #e5e7eb;
                     --chip: #eef2ff;
+                  --chipBorder: #d0d7de;
                 }
                 .portfolio[data-theme="dark"] {
                     --pageBg: #0b1220;
@@ -139,7 +173,8 @@ export default function FullStackPortfolio({
                     --accent: #22d3ee;
                     --cardBg: #0b1220;
                     --border: #1f2a44;
-                    --chip: #111827;
+                  --chip: #0b1a33;
+                  --chipBorder: #2a3b5e;
                 }
 
                 * { box-sizing: border-box; }
@@ -169,6 +204,7 @@ export default function FullStackPortfolio({
                 .brand {
                     display: flex; gap: .75rem; align-items: center; font-weight: 700; color: var(--text);
                 }
+                .brand .muted { white-space: nowrap; }
                 .brand-badge {
                     width: 36px; height: 36px; border-radius: 10px;
                     background: linear-gradient(135deg, var(--primary), var(--accent));
@@ -193,7 +229,7 @@ export default function FullStackPortfolio({
                 .hero-grid {
                     display: grid; grid-template-columns: 1.3fr .7fr; gap: 2rem; align-items: center;
                 }
-                .hero h1 { margin: 0 0 .5rem; font-size: clamp(1.8rem, 4.2vw, 3rem); color: var(--text); }
+                .hero h1 { margin: 0 0 .5rem; font-size: clamp(1.5rem, 4.2vw, 3rem); color: var(--text); white-space: nowrap; }
                 .hero .lead { margin: .25rem 0 1.25rem; color: var(--muted); font-size: 1.05rem; }
                 .hero .lead p { margin: 0 0 .75rem; }
                 .hero .lead p:last-child { margin-bottom: 0; }
@@ -201,7 +237,7 @@ export default function FullStackPortfolio({
                 .badge {
                     background: var(--chip);
                     color: var(--text);
-                    border: 1px solid var(--border);
+                  border: 1px solid var(--chipBorder);
                     padding: .35rem .6rem; border-radius: .5rem; font-size: .85rem; font-weight: 600;
                 }
                 .cta-row { display: flex; gap: .75rem; flex-wrap: wrap; }
@@ -241,7 +277,7 @@ export default function FullStackPortfolio({
                 .chips { display: flex; flex-wrap: wrap; gap: .5rem; }
                 .chip {
                     background: var(--chip);
-                    border: 1px solid var(--border);
+                  border: 1px solid var(--chipBorder);
                     color: var(--text); padding: .35rem .55rem; border-radius: .5rem; font-weight: 600; font-size: .85rem;
                 }
 
@@ -251,7 +287,7 @@ export default function FullStackPortfolio({
                 .project h3 { margin: 0 0 .5rem; }
                 .project p { margin: 0 0 .7rem; color: var(--muted); min-height: 42px; }
                 .techline { display: flex; flex-wrap: wrap; gap: .4rem; margin: .6rem 0 .9rem; }
-                .techline span { font-size: .78rem; padding: .28rem .5rem; border-radius: .4rem; background: var(--chip); border: 1px solid var(--border); font-weight: 600; }
+                .techline span { font-size: .78rem; padding: .28rem .5rem; border-radius: .4rem; background: var(--chip); border: 1px solid var(--chipBorder); font-weight: 600; color: var(--text); }
                 .links { display: flex; gap: .6rem; }
 
                 .timeline { border-left: 2px solid var(--border); padding-left: 1rem; display: grid; gap: 1rem; }
@@ -292,7 +328,7 @@ export default function FullStackPortfolio({
         <div className="container nav-inner">
           <div className="brand">
             <div className="brand-badge" aria-hidden>
-              FS
+              {initials(name)}
             </div>
             <div>
               <div className="text-base leading-none">{name}</div>
@@ -311,6 +347,7 @@ export default function FullStackPortfolio({
             </div>
             <button
               className="theme-toggle"
+              // Toggle between light/dark CSS variable palettes.
               onClick={() => setTheme((t) => (t === 'light' ? 'dark' : 'light'))}
               aria-label="Toggle theme"
               title="Toggle theme"
@@ -320,6 +357,8 @@ export default function FullStackPortfolio({
           </div>
         </div>
       </nav>
+
+      <CompatibilityNotice />
 
       <header className="hero" id="about">
         <div className="container hero-grid">
@@ -338,17 +377,6 @@ export default function FullStackPortfolio({
               <p>
                 I’m always open to collaborating on cloud projects, scalable app development, and data‑centric solutions that push technology forward.
               </p>
-            </div>
-            <div className="badge-row" aria-label="Core skills">
-              <span className="badge">Cloud Dev - AWS, Azure & GCP</span>
-              <span className="badge">HTML, React/Next.js</span>
-              <span className="badge">CSS - Tailwind/Bootstrap</span>
-              <span className="badge">JavaScript/TypeScript</span>
-              <span className="badge">Node/Express.js</span>
-              <span className="badge">C# & .NET Core</span>
-              <span className="badge">SQL & Databases</span>
-              <span className="badge">Git & GitHub</span>
-              <span className="badge">Agile & Scrum</span>
             </div>
             <div className="cta-row">
               <a className="btn btn-primary" href={githubUrl} target="_blank" rel="noreferrer">
@@ -530,6 +558,7 @@ export default function FullStackPortfolio({
                   {showAdmin ? 'Hide' : 'Show'} Admin
                 </button>
               </div>
+              {/* Admin panel is hidden by default because it connects to Socket.IO when enabled. */}
               {showAdmin && <AdminPanel />}
             </div>
           </div>
@@ -553,13 +582,14 @@ export default function FullStackPortfolio({
   );
 }
 
+/** Derives initials for avatar/badge from a full name (fallback is "AJ"). */
 function initials(fullName: string): string {
   const parts = String(fullName || '')
     .split(' ')
     .filter(Boolean)
     .slice(0, 2)
     .map((s) => s[0]?.toUpperCase() ?? '');
-  return parts.join('') || 'FS';
+  return parts.join('') || 'AJ';
 }
 
 function GitHubIcon(props: React.SVGProps<SVGSVGElement>) {

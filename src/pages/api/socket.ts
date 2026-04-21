@@ -4,19 +4,29 @@ import { Server as IOServer } from 'socket.io';
 
 import type { NextApiResponseServerIO } from '../../types/next';
 
+/**
+ * Socket.IO bootstrap endpoint.
+ *
+ * Visiting /api/socket starts the Socket.IO server (attached to the underlying HTTP server).
+ * The client then connects using the `/api/socketio` path.
+ */
+
 export const config = {
   api: {
+    // Socket.IO expects to manage the HTTP request stream itself.
     bodyParser: false,
   },
 };
 
 export default function handler(req: NextApiRequest, res: NextApiResponseServerIO) {
   if (process.env.NETLIFY) {
+    // Netlify serverless functions do not support long-lived socket servers.
     res.status(501).json({ error: 'realtime_not_supported_on_netlify' });
     return;
   }
 
   if (res.socket.server.io) {
+    // Server already initialized.
     res.status(200).end();
     return;
   }

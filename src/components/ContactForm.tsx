@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 
+/** Local form model for the contact form UI. */
 type ContactFormData = {
   name: string;
   email: string;
@@ -9,16 +10,24 @@ type ContactFormData = {
   message: string;
 };
 
+/** Tracks submission status for button state + inline feedback. */
 type ContactStatus = null | { loading?: boolean; ok?: boolean; error?: string };
 
+/** Optional props for customizing where requests are sent. */
 type ContactFormProps = {
   apiUrl?: string;
 };
 
+/**
+ * Contact form that POSTs to `/api/contact`.
+ *
+ * When deployed, you can point to a different API host via `NEXT_PUBLIC_API_URL` or `apiUrl`.
+ */
 export default function ContactForm({ apiUrl }: ContactFormProps) {
   const [form, setForm] = useState<ContactFormData>({ name: '', email: '', subject: '', message: '' });
   const [status, setStatus] = useState<ContactStatus>(null);
 
+  // `apiUrl` prop takes precedence over NEXT_PUBLIC_API_URL.
   const base = apiUrl ?? process.env.NEXT_PUBLIC_API_URL ?? '';
   const endpoint = base ? `${base.replace(/\/$/, '')}/api/contact` : '/api/contact';
 
@@ -38,15 +47,35 @@ export default function ContactForm({ apiUrl }: ContactFormProps) {
         body: JSON.stringify(form),
       });
 
-      const data: unknown = await res.json().catch(() => null);
+      // The API usually responds with JSON. Some platforms may return HTML/plain-text
+      // for 500 errors, so we parse defensively and surface helpful info to users.
+      const parsed = await res
+        .clone()
+        .json()
+        .then((json) => ({ kind: 'json' as const, json }))
+        .catch(async () => ({ kind: 'text' as const, text: await res.text().catch(() => '') }));
+
       if (!res.ok) {
-        const maybeError = (data as { error?: string } | null)?.error;
-        throw new Error(maybeError || 'Failed to send');
+        const maybeError =
+          parsed.kind === 'json' && parsed.json && typeof parsed.json === 'object'
+            ? (parsed.json as { error?: string; details?: string }).error
+            : undefined;
+
+        const maybeDetails =
+          parsed.kind === 'json' && parsed.json && typeof parsed.json === 'object'
+            ? (parsed.json as { details?: string }).details
+            : parsed.kind === 'text'
+              ? parsed.text
+              : undefined;
+
+        const details = typeof maybeDetails === 'string' ? maybeDetails.trim().slice(0, 200) : '';
+        throw new Error(`${maybeError || `HTTP_${res.status}`}${details ? `: ${details}` : ''}`);
       }
 
       setStatus({ ok: true });
       setForm({ name: '', email: '', subject: '', message: '' });
     } catch (err) {
+      // Convert unknown exceptions into a readable string.
       setStatus({ ok: false, error: err instanceof Error ? err.message : String(err) });
     }
   };
@@ -60,7 +89,7 @@ export default function ContactForm({ apiUrl }: ContactFormProps) {
           value={form.name}
           onChange={handleChange}
           required
-          className="w-full rounded-md border border-gray-300 p-2"
+          className="w-full rounded-md border border-[var(--border)] bg-[var(--elev)] p-2 text-[var(--text)] placeholder:text-[var(--muted)] outline-none focus:border-[var(--accent)]"
         />
       </label>
       <label className="grid gap-1">
@@ -71,7 +100,7 @@ export default function ContactForm({ apiUrl }: ContactFormProps) {
           value={form.email}
           onChange={handleChange}
           required
-          className="w-full rounded-md border border-gray-300 p-2"
+          className="w-full rounded-md border border-[var(--border)] bg-[var(--elev)] p-2 text-[var(--text)] placeholder:text-[var(--muted)] outline-none focus:border-[var(--accent)]"
         />
       </label>
       <label className="grid gap-1">
@@ -80,7 +109,7 @@ export default function ContactForm({ apiUrl }: ContactFormProps) {
           name="subject"
           value={form.subject}
           onChange={handleChange}
-          className="w-full rounded-md border border-gray-300 p-2"
+          className="w-full rounded-md border border-[var(--border)] bg-[var(--elev)] p-2 text-[var(--text)] placeholder:text-[var(--muted)] outline-none focus:border-[var(--accent)]"
         />
       </label>
       <label className="grid gap-1">
@@ -91,7 +120,7 @@ export default function ContactForm({ apiUrl }: ContactFormProps) {
           onChange={handleChange}
           required
           rows={6}
-          className="w-full rounded-md border border-gray-300 p-2"
+          className="w-full rounded-md border border-[var(--border)] bg-[var(--elev)] p-2 text-[var(--text)] placeholder:text-[var(--muted)] outline-none focus:border-[var(--accent)]"
         />
       </label>
 

@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+  Global styles.
+
+  Most of the UI styling is colocated inside `FullStackPortfolio.tsx`.
+  This file provides only lightweight baseline resets that apply to all routes.
+*/
 
 body {
   margin: 0;
