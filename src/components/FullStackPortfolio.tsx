@@ -1,696 +1,422 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
+import { 
+  Server, 
+  Boxes, 
+  Terminal, 
+  Cloud, 
+  Code, 
+  Mail, 
+  X, 
+  Loader2 
+} from 'lucide-react';
 
-import CompatibilityNotice from './CompatibilityNotice';
-import ContactForm from './ContactForm';
+// Custom inline brand SVG components to bypass lucide brand logo deprecation
+const GithubIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
+    <path d="M9 18c-4.51 2-5-2-7-2" />
+  </svg>
+);
 
-/**
- * Single-page portfolio UI.
- *
- * Notes for maintainers:
- * - This component is intentionally self-contained (markup + a small CSS-in-JSX block)
- *   to keep the project simple to deploy.
- * - Theme is implemented via a `data-theme` attribute + CSS variables.
- */
+const LinkedinIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+    <rect width="4" height="12" x="2" y="9" />
+    <circle cx="4" cy="4" r="2" />
+  </svg>
+);
 
-/** UI theme modes supported by the portfolio container. */
-type Theme = 'light' | 'dark';
+type TabType = 'ai' | 'gitops' | 'analytics' | 'edge';
 
-/** Map of section heading -> list of skill "chips". */
-type SkillsMap = Record<string, string[]>;
-
-/** Project metadata rendered in the "Projects" section. */
-type Project = {
-  title: string;
-  description: string;
-  tech: string[];
-  github: string;
-  live: string;
+type ContactFormData = {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
 };
 
-/** Public props for customizing the portfolio (all optional, with sensible defaults). */
-type FullStackPortfolioProps = {
-  name?: string;
-  title?: string;
-  location?: string;
-  email?: string;
-  githubUrl?: string;
-  linkedinUrl?: string;
-  resumeUrl?: string;
-  projects?: Project[];
+type ContactStatus = null | { loading?: boolean; ok?: boolean; error?: string };
+
+type ContactFormProps = {
+  apiUrl?: string;
 };
 
-/**
- * Main portfolio component.
- *
- * Defaults are filled so the app renders out-of-the-box without any data fetching.
- */
-export default function FullStackPortfolio({
-  name = 'Amadou Jarju',
-  title = 'Cloud|Software\u00A0Engineer',
-  location = 'Nottingham, United Kingdom',
-  email = 'amsjarju99@gmail.com',
-  githubUrl = 'https://github.com/Jolaboy',
-  linkedinUrl = 'https://www.linkedin.com/in/amadou-jarju/',
-  resumeUrl = '#',
-  projects,
-}: FullStackPortfolioProps) {
-  // Theme is controlled entirely by a `data-theme` attribute and CSS variables.
-  const [theme, setTheme] = useState<Theme>('light');
+export default function FullStackPortfolio({ apiUrl }: ContactFormProps) {
+  const [activeTab, setActiveTab] = useState<TabType>('ai');
+  const [isContactOpen, setIsContactOpen] = useState(false);
+  const [form, setForm] = useState<ContactFormData>({ name: '', email: '', subject: '', message: '' });
+  const [status, setStatus] = useState<ContactStatus>(null);
 
-  // Skills are memoized to avoid recreating arrays on every render.
-  const skills = useMemo<SkillsMap>(
-    () => ({
-      'Cloud Engineering': ['AWS (EC2, Lambda, S3, RDS, VPC)', 'Azure (App Service, Functions, Storage)', 'GCP (Cloud Run, Cloud Storage)'],
-      Frontend: ['JavaScript/TypeScript', 'React/Next.js', 'Tailwind/Bootstrap'],
-      Backend: ['Databases(SQL & NoSQL)', 'Python  (FastAPI)', 'C# & .NET Core', 'Node/Express.js', 'APIs (REST, GraphQL, gRPC)'],
-      'System Design & UI/UX': ['Requirements Gathering', 'Design Use Cases & User Stories', 'Wireframing', 'Prototyping', 'Responsive Design'],
-      'Database Management': ['Schema Design', 'Migrations & Seeding', 'Performance Tuning', 'Backup & Recovery'],
-      'Version Control & Project Management': ['Git', 'GitHub', 'Branching & Pull Requests', 'GitHub Actions(CI/CD)', 'Agile / Scrum',  'Stakeholder Comms'],
-    }),
-    []
-  );
+  const base = apiUrl ?? process.env.NEXT_PUBLIC_API_URL ?? '';
+  const endpoint = base ? `${base.replace(/\/$/, '')}/api/contact` : '/api/contact';
 
-  // Default project list used when no `projects` prop is provided.
-  const defaultProjects = useMemo<Project[]>(
-    () => [
-      {
-        title: 'Holiday Destination App - TravelWise',
-        description:
-          'A modern, responsive travel destination search application built with React. TravelWise helps users discover new places by providing real-time weather data, stunning photography, and smart search capabilities.',
-        tech: ['React 19(vite)', 'Bootstrap 5', 'APIs'],
-        github: 'https://github.com/Jolaboy/Holiday_Destination_App-TravelWise',
-        live: 'https://destinationtravelwise.netlify.app/',
-      },
-      {
-        title: 'Library Management System',
-        description: 'This repository contains a collection of data science projects showcasing various analysis, machine learning, and visualization techniques.',
-        tech: ['C#', '.NET Core', 'SQL Server', 'Entity Framework', 'Bootstrap'],
-        github: 'https://github.com/Jolaboy/C-Sharp-.NET-Projects/tree/master/LibraryManagementApp',
-        live: '',
-      },
-      {
-        title: 'Student API',
-        description: 'This project showcases backend development and provides a robust API for managing student data with secure endpoints and efficient data handling.',
-        tech: ['C#', '.NET Core', 'Postgres', 'Entity Framework', 'Swagger UI'],
-        github: 'https://github.com/Jolaboy/C-Sharp-.NET-Projects/tree/main/StudentApi',
-        live: '',
-      },
-      {
-        title: 'PremierLeagueStats',
-        description: 'This App tracks fantasy league statistics, manages teams, and calculates points using seeded data.',
-        tech: ['C#', '.NET Core ', 'SQLite', 'Entity Framework'],
-        github: 'https://github.com/Jolaboy/Basic-C-Sharp-Projects/tree/master/PremierLeagueFantasyApp/PremierLeagueFantasyApp',
-        live: '',
-      },
-      {
-        title: 'Weather App',
-        description: 'This app provides real-time weather information for any location using a clean and responsive interface.',
-        tech: ['HTML', 'CSS', 'JavaScript', 'RESTful API', 'Bootstrap'],
-        github: 'https://github.com/Jolaboy/JavaScript-Projects/tree/main/Weather-App',
-        live: 'https://ggweather.netlify.app/',
-      },
-      {
-        title: 'SQL and Database Management',
-        description: 'A curated SQL Server portfolio with practical database projects for operations, ticketing, inventory, and business reporting.',
-        tech: ['T-SQL Scripting', 'Data Modelling', 'Stored Procedures', 'Database Design'],
-        github: 'https://github.com/Jolaboy/sql-and-database-projects',
-        live: '',
-      },
-    ],
-    []
-  );
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setForm((f) => ({ ...f, [name]: value }));
+  };
 
-  // Render either external projects passed in, or the local defaults.
-  const items: Project[] = projects && projects.length ? projects : defaultProjects;
+  const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setStatus({ loading: true });
 
-  // Used in the footer for an always-current copyright.
-  const year = new Date().getFullYear();
+    try {
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+
+      const parsed = await res
+        .clone()
+        .json()
+        .then((json) => ({ kind: 'json' as const, json }))
+        .catch(async () => ({ kind: 'text' as const, text: await res.text().catch(() => '') }));
+
+      if (!res.ok) {
+        const maybeError =
+          parsed.kind === 'json' && parsed.json && typeof parsed.json === 'object'
+            ? (parsed.json as { error?: string }).error
+            : undefined;
+
+        const maybeDetails =
+          parsed.kind === 'json' && parsed.json && typeof parsed.json === 'object'
+            ? (parsed.json as { details?: string }).details
+            : parsed.kind === 'text'
+              ? parsed.text
+              : undefined;
+
+        const details = typeof maybeDetails === 'string' ? maybeDetails.trim().slice(0, 200) : '';
+        throw new Error(`${maybeError || `HTTP_${res.status}`}${details ? `: ${details}` : ''}`);
+      }
+
+      setStatus({ ok: true });
+      setForm({ name: '', email: '', subject: '', message: '' });
+      
+      setTimeout(() => {
+        setIsContactOpen(false);
+        setStatus(null);
+      }, 2500);
+
+    } catch (err) {
+      setStatus({ ok: false, error: err instanceof Error ? err.message : String(err) });
+    }
+  };
+
+  const blueprints = {
+    ai: {
+      title: "Multi-Agent AI Orchestration Engine Infrastructure (LLMOps)",
+      desc: "Secured, microsegmented environment hosting multi-agent AI logic engines executing on AWS ECS Fargate, restricting access channels directly to Amazon Bedrock models via L7 AWS VPC Lattice boundaries.",
+      tags: ["AWS Bedrock", "VPC Lattice", "ECS Fargate", "Terraform"],
+      metricTitle: "Security Guardrails",
+      metrics: ["• Auth Type: AWS_IAM", "• Target: Claude 3.5 Sonnet", "• Injections Blocked: Native"],
+      url: "https://github.com/Jolaboy/-edge-global-gateway"
+    },
+    gitops: {
+      title: "Zero-Trust Multi-Cluster GitOps Platform Engine",
+      desc: "Continuous reconciliation loop managing complex Kubernetes infrastructure deployments automatically through ArgoCD synchronization models combined with Crossplane cloud provisioning.",
+      tags: ["Amazon EKS v1.31", "ArgoCD", "Crossplane", "Kyverno"],
+      metricTitle: "Platform Metrics",
+      metrics: ["• Topology: App-of-Apps", "• Infrastructure: Declarative", "• State Drift Sync: Automatic"],
+      url: "https://github.com/Jolaboy/gitops-platform-engine"
+    },
+    analytics: {
+      title: "Serverless Real-Time Data Streaming & Analytics Ledger",
+      desc: "Infinite-scale streaming data architecture capturing event matrices via AWS Kinesis Streams, routing processing routines through Python 3.12 Lambda, and saving payloads into structured Apache Iceberg tables.",
+      tags: ["AWS Kinesis", "AWS Lambda 3.12", "Apache Iceberg", "AWS SAM"],
+      metricTitle: "Data Operations",
+      metrics: ["• Type: Storage Optimization", "• Engine: Amazon Athena v3", "• Format: Compacted Parquet"],
+      url: "https://github.com/Jolaboy/serverless-analytics-ledger"
+    },
+    edge: {
+      title: "Edge-Optimized Multi-Region Global API Gateway",
+      desc: "Sub-10ms entry layer deploying lightweight edge computing workers (V8 Engine) paired with horizontally replicated, active-active cross-region Amazon DynamoDB storage nodes.",
+      tags: ["Cloudflare Workers", "V8 Isolation Engine", "DynamoDB Global Tables", "TypeScript"],
+      metricTitle: "Performance Metrics",
+      metrics: ["• Ingress Latency: <10ms", "• Topology: Active-Active", "• Sync Layer: Dynamo Streams"],
+      url: "https://github.com/Jolaboy/-edge-global-gateway"
+    }
+  };
 
   return (
-    // `data-theme` drives the CSS variable set used by the inline styles.
-    <div className="portfolio" data-theme={theme}>
-      {/*
-        CSS-in-JSX keeps the portfolio styles colocated with the component.
-        The design is implemented using CSS variables so light/dark theme toggling is fast.
-      */}
-      <style>{`
-                :root {}
-                .portfolio {
-                    --bg: #0b0c10;
-                    --text: #0b0c10;
-                    --muted: #57606a;
-                    --primary: #2563eb;
-                    --accent: #14b8a6;
-                    --cardBg: #ffffff;
-                    --border: #e5e7eb;
-                    background: var(--pageBg);
-                    color: var(--text);
-                    text-rendering: optimizeLegibility;
-                }
-                .portfolio[data-theme="light"] {
-                    --pageBg: #f6f8fa;
-                    --elev: #ffffff;
-                    --text: #0b1220;
-                    --muted: #44515e;
-                    --primary: #2563eb;
-                    --accent: #0ea5e9;
-                    --cardBg: #ffffff;
-                    --border: #e5e7eb;
-                    --chip: #eef2ff;
-                  --chipBorder: #d0d7de;
-                }
-                .portfolio[data-theme="dark"] {
-                    --pageBg: #0b1220;
-                    --elev: #0f172a;
-                    --text: #e6edf3;
-                    --muted: #b5c2d6;
-                    --primary: #60a5fa;
-                    --accent: #22d3ee;
-                    --cardBg: #0b1220;
-                    --border: #1f2a44;
-                  --chip: #0b1a33;
-                  --chipBorder: #2a3b5e;
-                }
-
-                * { box-sizing: border-box; }
-                html, body, #root { height: 100%; }
-                html { scroll-behavior: smooth; }
-                body {
-                  margin: 0;
-                  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji","Segoe UI Emoji";
-                  font-size: 16px;
-                  line-height: 1.6;
-                  -webkit-font-smoothing: antialiased;
-                  text-rendering: optimizeLegibility;
-                  font-kerning: normal;
-                }
-
-                h1, h2, h3 { font-weight: 800; }
-
-                a { color: inherit; text-decoration: none; }
-                img { max-width: 100%; display: block; }
-
-                :where(a, button, input, textarea):focus-visible {
-                  outline: 2px solid var(--accent);
-                  outline-offset: 2px;
-                }
-
-                .container {
-                    width: 100%;
-                    max-width: 1100px;
-                    margin: 0 auto;
-                  padding: 0 1.25rem;
-                }
-
-                .nav {
-                    position: sticky; top: 0; z-index: 20;
-                    background: var(--elev);
-                    border-bottom: 1px solid var(--border);
-                    backdrop-filter: blur(8px);
-                }
-                .nav-inner {
-                    display: flex; align-items: center; justify-content: space-between;
-                    height: 64px;
-                }
-                .brand {
-                    display: flex; gap: .75rem; align-items: center; font-weight: 700; color: var(--text);
-                }
-                .brand .muted { white-space: nowrap; }
-                .brand-badge {
-                    width: 36px; height: 36px; border-radius: 10px;
-                    background: linear-gradient(135deg, var(--primary), var(--accent));
-                    display: grid; place-items: center; color: white; font-weight: 800;
-                }
-                .nav-links { display: flex; gap: 1rem; }
-                .nav-links a {
-                  color: var(--muted);
-                  font-weight: 700;
-                  padding: .5rem .75rem;
-                  border-radius: .6rem;
-                  border: 1px solid transparent;
-                }
-                .nav-links a:hover { color: var(--text); background: var(--chip); border-color: var(--chipBorder); }
-                .theme-toggle {
-                    border: 1px solid var(--border);
-                    background: transparent; color: var(--text);
-                    border-radius: .6rem; padding: .45rem .7rem; cursor: pointer;
-                }
-                .theme-toggle:hover { background: var(--chip); border-color: var(--chipBorder); }
-
-                .hero {
-                    background: linear-gradient(180deg, rgba(37,99,235,.08), transparent 50%),
-                                            linear-gradient(180deg, rgba(34,211,238,.08), transparent 30%);
-                  padding: 4.25rem 0 2.25rem;
-                  border-bottom: 1px solid var(--border);
-                }
-                .hero-grid {
-                    display: grid; grid-template-columns: 1.3fr .7fr; gap: 2rem; align-items: center;
-                }
-                .hero h1 {
-                  margin: 0 0 .6rem;
-                  font-size: clamp(1.6rem, 4.2vw, 3.05rem);
-                  color: var(--text);
-                  white-space: nowrap;
-                  letter-spacing: -0.03em;
-                  line-height: 1.12;
-                  text-wrap: balance;
-                }
-                .hero .lead {
-                  margin: .25rem 0 1.35rem;
-                  color: var(--muted);
-                  font-size: 1.075rem;
-                  line-height: 1.8;
-                  max-width: 72ch;
-                  font-weight: 500;
-                }
-                .hero .lead p { margin: 0 0 .75rem; }
-                .hero .lead p:last-child { margin-bottom: 0; }
-                .badge-row { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1rem 0 1.25rem; }
-                .badge {
-                    background: var(--chip);
-                    color: var(--text);
-                  border: 1px solid var(--chipBorder);
-                    padding: .35rem .6rem; border-radius: .5rem; font-size: .85rem; font-weight: 600;
-                }
-                .cta-row { display: flex; gap: .75rem; flex-wrap: wrap; }
-                .btn {
-                    display: inline-flex; gap: .5rem; align-items: center; justify-content: center;
-                    padding: .6rem .9rem; font-weight: 700; border-radius: .65rem; border: 1px solid var(--border);
-                    color: var(--text); background: var(--elev);
-                }
-                .btn:hover { background: var(--chip); border-color: var(--chipBorder); }
-                .btn-primary {
-                    background: linear-gradient(135deg, var(--primary), var(--accent));
-                    color: white; border: none;
-                }
-                .btn-primary:hover { opacity: .96; }
-                .btn:active { transform: translateY(1px); }
-                .avatar {
-                    width: 160px; height: 160px; border-radius: 24px; background: var(--elev);
-                    border: 1px solid var(--border); display: grid; place-items: center; font-size: 3rem; font-weight: 800;
-                    color: var(--primary);
-                    box-shadow: 0 10px 30px rgba(0,0,0,.08);
-                }
-                .hero-aside {
-                    display: grid; place-items: center;
-                }
-                .location {
-                  color: var(--text);
-                  font-weight: 800;
-                  letter-spacing: -0.01em;
-                }
-
-                section { padding: 3rem 0; }
-                main section:nth-of-type(even) {
-                  background: var(--elev);
-                  border-top: 1px solid var(--border);
-                  border-bottom: 1px solid var(--border);
-                }
-                .section-head { margin-bottom: 1.1rem; }
-                .section-head h2 {
-                  margin: 0;
-                  font-size: 1.65rem;
-                  color: var(--text);
-                  display: inline-block;
-                  position: relative;
-                  padding-bottom: .35rem;
-                  letter-spacing: -0.01em;
-                  line-height: 1.2;
-                  text-wrap: balance;
-                }
-                .section-head h2::after {
-                  content: "";
-                  position: absolute;
-                  left: 0;
-                  bottom: 0;
-                  height: 3px;
-                  width: 72px;
-                  border-radius: 999px;
-                  background: linear-gradient(90deg, var(--primary), var(--accent));
-                }
-                .section-head p { margin: .25rem 0 0; color: var(--muted); font-weight: 500; }
-
-                .skills-grid {
-                    display: grid; gap: 1rem; grid-template-columns: repeat(2, minmax(0,1fr));
-                }
-                .card {
-                  background: linear-gradient(180deg, var(--elev), var(--cardBg));
-                  border: 1px solid var(--border);
-                  border-radius: 1rem;
-                  padding: 1.1rem;
-                }
-                .card h3 { margin: 0 0 .75rem; font-size: 1rem; color: var(--text); }
-                .chips { display: flex; flex-wrap: wrap; gap: .5rem; }
-                .chip {
-                    background: var(--chip);
-                  border: 1px solid var(--chipBorder);
-                    color: var(--text); padding: .35rem .55rem; border-radius: .5rem; font-weight: 600; font-size: .85rem;
-                }
-
-                .projects {
-                    display: grid; gap: 1rem; grid-template-columns: repeat(3, minmax(0,1fr));
-                }
-                .project { display: flex; flex-direction: column; }
-                .project h3 { margin: 0 0 .5rem; }
-                .project p { margin: 0 0 .7rem; color: var(--muted); min-height: 42px; line-height: 1.7; font-weight: 500; }
-                .techline { display: flex; flex-wrap: wrap; gap: .4rem; margin: .6rem 0 .9rem; }
-                .techline span { font-size: .78rem; padding: .28rem .5rem; border-radius: .4rem; background: var(--chip); border: 1px solid var(--chipBorder); font-weight: 600; color: var(--text); }
-                .links { display: flex; gap: .6rem; margin-top: auto; }
-
-                .timeline { border-left: 2px solid var(--border); padding-left: 1rem; display: grid; gap: 1rem; }
-                .tl-item { position: relative; }
-                .tl-item::before {
-                    content: ""; position: absolute; left: -1.05rem; top: .3rem;
-                    width: .7rem; height: .7rem; background: var(--primary); border-radius: 50%;
-                    box-shadow: 0 0 0 4px var(--elev);
-                }
-                .tl-title { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; }
-                .tl-title strong { color: var(--text); }
-                .tl-title span { color: var(--muted); font-size: .9rem; }
-                .tl-body { color: var(--muted); margin-top: .3rem; line-height: 1.7; font-weight: 500; }
-
-                .contact-card { display: grid; gap: .75rem; }
-                .contact-row { display: flex; gap: .75rem; flex-wrap: wrap; }
-                .muted { color: var(--muted); }
-
-                footer {
-                    border-top: 1px solid var(--border);
-                    background: var(--elev);
-                    padding: 1.35rem 0;
-                    color: var(--muted);
-                    font-size: .95rem;
-                    margin-top: 1rem;
-                    font-weight: 500;
-                }
-                .footer-row { align-items: center; }
-                .footer-name { color: var(--text); font-weight: 800; }
-
-                .social { display: inline-flex; gap: .5rem; align-items: center; }
-                .social a {
-                  width: 40px;
-                  height: 40px;
-                  display: inline-flex;
-                  align-items: center;
-                  justify-content: center;
-                  border-radius: .85rem;
-                  border: 1px solid var(--chipBorder);
-                  background: var(--chip);
-                  color: var(--text);
-                }
-                .social a:hover { color: var(--text); border-color: var(--chipBorder); }
-                .social a:active { transform: translateY(1px); }
-                .icon { width: 20px; height: 20px; display: inline-block; }
-
-                @media (max-width: 980px) {
-                    .projects { grid-template-columns: repeat(2, minmax(0,1fr)); }
-                    .hero-grid { grid-template-columns: 1fr; }
-                }
-                @media (max-width: 640px) {
-                    .skills-grid, .projects { grid-template-columns: 1fr; }
-                    .nav-links { display: none; }
-                    .avatar { width: 120px; height: 120px; font-size: 2.2rem; }
-                }
-            `}</style>
-
-      <nav className="nav" aria-label="Primary">
-        <div className="container nav-inner">
-          <div className="brand">
-            <div className="brand-badge" aria-hidden>
-              {initials(name)}
-            </div>
-            <div>
-              <div className="text-base leading-none">{name}</div>
-              <div className="muted text-sm">
-                {title}
-              </div>
-            </div>
+    <div className="bg-[#0f172a] text-slate-100 min-h-screen flex flex-col selection:bg-sky-500/30">
+      
+      {/* Top Navigation Bar */}
+      <nav className="border-b border-slate-800 bg-[#1e293b]/50 backdrop-blur sticky top-0 z-50 px-6 py-4">
+        <div className="max-w-6xl mx-auto flex justify-between items-center">
+          <div className="flex items-center space-x-3">
+            <Server className="text-sky-400 w-6 h-6 animate-pulse" />
+            <span className="font-mono font-bold text-lg tracking-wider text-white">CLOUD_ARCHITECT_CORE</span>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="nav-links">
-              <a href="#about">About</a>
-              <a href="#skills">Skills</a>
-              <a href="#projects">Projects</a>
-              <a href="#experience">Experience</a>
-              <a href="#contact">Contact</a>
-            </div>
-            <button
-              className="theme-toggle"
-              // Toggle between light/dark CSS variable palettes.
-              onClick={() => setTheme((t) => (t === 'light' ? 'dark' : 'light'))}
-              aria-label="Toggle theme"
-              title="Toggle theme"
+          <div className="flex items-center space-x-6 text-sm font-medium text-slate-400">
+            <a href="#metrics" className="hover:text-sky-400 transition hidden sm:inline">Metrics</a>
+            <a href="#projects" className="hover:text-sky-400 transition hidden sm:inline">Production Blueprints</a>
+            <button 
+              onClick={() => setIsContactOpen(!isContactOpen)} 
+              className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg border transition ${
+                isContactOpen 
+                  ? 'bg-sky-500/10 text-sky-400 border-sky-500/30' 
+                  : 'border-slate-700 text-slate-300 hover:border-slate-500 bg-[#1e293b]/30'
+              }`}
             >
-              {theme === 'light' ? 'Dark' : 'Light'}
+              <Mail className="w-4 h-4" />
+              <span>Contact Console</span>
             </button>
           </div>
         </div>
       </nav>
 
-      <CompatibilityNotice />
+      {/* Dropdown Form Drawer */}
+      <div 
+        className={`border-b border-slate-800 bg-[#1e293b]/40 backdrop-blur-md overflow-hidden transition-all duration-300 ease-in-out ${
+          isContactOpen ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0 pointer-events-none'
+        }`}
+      >
+        <div className="max-w-3xl mx-auto px-6 py-8 relative">
+          <button 
+            onClick={() => setIsContactOpen(false)} 
+            className="absolute top-6 right-6 text-slate-500 hover:text-white transition"
+            aria-label="Close form drawer"
+          >
+            <X className="w-5 h-5" />
+          </button>
+          
+          <div className="mb-6">
+            <h4 className="text-lg font-bold text-white font-mono flex items-center gap-2">
+              <Terminal className="w-4 h-4 text-sky-400" /> secure_mailer_daemon.sh
+            </h4>
+            <p className="text-xs text-slate-400 mt-1">Submit parameters to dispatch a message payload straight to my communications endpoint.</p>
+          </div>
 
-      <header className="hero" id="about">
-        <div className="container hero-grid">
-          <div>
-            <h1>{title}</h1>
-            <div className="lead">
-              <p>
-                I’m a cloud and full‑stack engineer who builds scalable, secure, and high‑performing systems — from infrastructure to user‑facing applications.
-              </p>
-              <p>
-                My core strength is AWS cloud engineering (EC2, Lambda, S3, RDS, VPC) backed by Infrastructure as Code. I also deliver end‑to‑end web apps with modern full‑stack tooling and use data‑driven approaches to improve performance, automate workflows, and unlock insights.
-              </p>
-              <p>
-                I enjoy turning complex requirements into clean, reliable solutions — whether that’s designing cloud architecture, shipping a polished UI, or building robust APIs.
-              </p>
-              <p>
-                If you’re working on cloud projects, scalable app development, or data‑centric products, I’m always open to collaborating.
-              </p>
+          <form onSubmit={handleFormSubmit} className="space-y-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-400 tracking-wider uppercase">Sender Name</label>
+                <input
+                  name="name"
+                  type="text"
+                  value={form.name}
+                  onChange={handleFormChange}
+                  required
+                  placeholder="e.g. Alex Cloudman"
+                  className="w-full rounded-lg border border-slate-800 bg-[#0f172a]/70 p-2.5 text-slate-100 placeholder:text-slate-600 outline-none focus:border-sky-400 transition"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-400 tracking-wider uppercase">Return Email Address</label>
+                <input
+                  name="email"
+                  type="email"
+                  value={form.email}
+                  onChange={handleFormChange}
+                  required
+                  placeholder="name@enterprise.com"
+                  className="w-full rounded-lg border border-slate-800 bg-[#0f172a]/70 p-2.5 text-slate-100 placeholder:text-slate-600 outline-none focus:border-sky-400 transition"
+                />
+              </div>
             </div>
-            <div className="cta-row">
-              <a className="btn btn-primary" href={githubUrl} target="_blank" rel="noreferrer">
-                <GitHubIcon /> GitHub
-              </a>
-              <a className="btn btn-outline btn" href={linkedinUrl} target="_blank" rel="noreferrer">
-                <LinkedInIcon /> LinkedIn
-              </a>
-              {email && (
-                <a className="btn btn-outline btn" href={`mailto:${email}`}>
-                  Email
-                </a>
+
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-slate-400 tracking-wider uppercase">Subject Metric</label>
+              <input
+                name="subject"
+                type="text"
+                value={form.subject}
+                onChange={handleFormChange}
+                placeholder="Infrastructure Request Alignment"
+                className="w-full rounded-lg border border-slate-800 bg-[#0f172a]/70 p-2.5 text-slate-100 placeholder:text-slate-600 outline-none focus:border-sky-400 transition"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-slate-400 tracking-wider uppercase">Message Body</label>
+              <textarea
+                name="message"
+                value={form.message}
+                onChange={handleFormChange}
+                required
+                rows={4}
+                placeholder="Write infrastructure deployment details here..."
+                className="w-full rounded-lg border border-slate-800 bg-[#0f172a]/70 p-2.5 text-slate-100 placeholder:text-slate-600 outline-none focus:border-sky-400 transition resize-none"
+              />
+            </div>
+
+            <div className="flex items-center justify-between pt-2">
+              <button 
+                type="submit" 
+                disabled={status?.loading}
+                className="bg-sky-500 hover:bg-sky-400 disabled:bg-slate-800 text-[#0f172a] disabled:text-slate-500 font-bold px-5 py-2.5 rounded-lg transition flex items-center space-x-2"
+              >
+                {status?.loading && <Loader2 className="w-4 h-4 animate-spin" />}
+                <span>{status?.loading ? 'Dispatching Payload...' : 'Execute Send'}</span>
+              </button>
+
+              {status?.ok && (
+                <div className="text-emerald-400 font-mono text-xs flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                  Payload transmitted successfully.
+                </div>
               )}
-              {resumeUrl && resumeUrl !== '#' && (
-                <a className="btn btn-outline btn" href={resumeUrl} target="_blank" rel="noreferrer">
-                  Download CV
-                </a>
+              {status && status.ok === false && (
+                <div className="text-rose-400 font-mono text-xs max-w-[70%] text-right truncate">
+                  Error: {status.error}
+                </div>
               )}
             </div>
+          </form>
+        </div>
+      </div>
+
+      {/* Hero Header Body */}
+      <header className="max-w-6xl w-full mx-auto px-6 pt-12 pb-6 grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+        <div className="md:col-span-2 space-y-4">
+          <div className="inline-flex items-center space-x-2 bg-sky-500/10 text-sky-400 px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase">
+            <span className="w-2 h-2 rounded-full bg-sky-400 inline-block"></span>
+            <span>Available for Opportunities</span>
           </div>
-          <div className="hero-aside">
-            <div className="avatar" aria-label={`${name} avatar`}>
-              {initials(name)}
-            </div>
-            <div className="location mt-2.5">
-              {location}
-            </div>
+          <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight">
+            Hi, I&apos;m a <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-blue-400">Cloud & DevOps Platform Engineer</span>
+          </h1>
+          <p className="text-slate-400 max-w-xl leading-relaxed text-sm">
+            Specializing in zero-trust multi-cluster operations, serverless real-time data streaming architectures, and multi-agent AI framework deployment boundaries. 
+          </p>
+        </div>
+        
+        <div className="bg-[#1e293b] border border-slate-800 rounded-xl p-4 shadow-2xl font-mono text-xs text-slate-300 relative overflow-hidden">
+          <div className="flex space-x-2 mb-3 border-b border-slate-800 pb-2">
+            <span className="w-3 h-3 rounded-full bg-red-500"></span>
+            <span className="w-3 h-3 rounded-full bg-yellow-500"></span>
+            <span className="w-3 h-3 rounded-full bg-green-500"></span>
+            <span className="text-slate-500 ml-2">session::bash</span>
           </div>
+          <p className="text-emerald-400">$ curl -s https://api.portfolio.dev/status</p>
+          <p className="text-slate-400 mt-1">{"{"}</p>
+          <p className="pl-4 text-slate-400">&quot;status&quot;: <span className="text-amber-300">&quot;RECONCILED&quot;</span>,</p>
+          <p className="pl-4 text-slate-400">&quot;iac_tools&quot;: [<span className="text-sky-300">&quot;Terraform&quot;, &quot;CDK&quot;</span>],</p>
+          <p className="pl-4 text-slate-400">&quot;kubernetes&quot;: <span className="text-sky-300">&quot;ArgoCD/Crossplane&quot;</span></p>
+          <p className="text-slate-400">{"}"}</p>
         </div>
       </header>
 
-      <main>
-        <section id="skills">
-          <div className="container">
-            <div className="section-head">
-              <h2>Skills</h2>
-              <p className="muted">Core technologies and tools I use to deliver value.</p>
-            </div>
-            <div className="skills-grid">
-              {Object.entries(skills).map(([group, items]) => (
-                <div className="card" key={group}>
-                  <h3>{group}</h3>
-                  <div className="chips">
-                    {items.map((s) => (
-                      <span className="chip" key={s}>
-                        {s}
-                      </span>
-                    ))}
-                  </div>
-                </div>
+      {/* Metrics Grid */}
+      <section id="metrics" className="max-w-6xl w-full mx-auto px-6 py-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[
+          { val: "4", lbl: "Production Blueprints" },
+          { val: "< 10ms", lbl: "Edge Target Latency", color: "text-emerald-400" },
+          { val: "100%", lbl: "Declarative GitOps Loop", color: "text-sky-400" },
+          { val: "Zero", lbl: "Trust Blast Radius", color: "text-purple-400" }
+        ].map((m, idx) => (
+          <div key={idx} className="bg-[#1e293b]/30 border border-slate-800/80 p-5 rounded-xl text-center">
+            <div className={`text-3xl font-extrabold ${m.color || 'text-white'}`}>{m.val}</div>
+            <div className="text-xs text-slate-500 mt-1 uppercase tracking-wider font-semibold">{m.lbl}</div>
+          </div>
+        ))}
+      </section>
+
+      {/* Blueprints Grid Tabs */}
+      <main id="projects" className="max-w-6xl w-full mx-auto px-6 py-12 flex-grow">
+        <h2 className="text-2xl font-bold text-white mb-6 flex items-center space-x-3">
+          <Boxes className="text-sky-400 w-6 h-6" />
+          <span>Evaluated Cloud Architectures</span>
+        </h2>
+
+        <div className="flex flex-wrap border-b border-slate-800 gap-2 mb-8">
+          {(Object.keys(blueprints) as TabType[]).map((tabKey) => (
+            <button
+              key={tabKey}
+              onClick={() => setActiveTab(tabKey)}
+              className={`px-4 py-2 text-sm font-medium border-b-2 transition duration-200 capitalize ${
+                activeTab === tabKey
+                  ? 'border-sky-400 text-sky-400'
+                  : 'border-transparent text-slate-400 hover:text-white'
+              }`}
+            >
+              {tabKey === 'ai' ? 'AI Agent Infrastructure' : tabKey === 'gitops' ? 'Zero-Trust GitOps' : tabKey === 'analytics' ? 'Serverless Iceberg' : 'Edge Global Gateway'}
+            </button>
+          ))}
+        </div>
+
+        <div className="bg-[#1e293b]/50 border border-slate-800 rounded-2xl p-6 md:p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="md:col-span-2 space-y-4">
+            <h3 className="text-xl font-bold text-white">{blueprints[activeTab].title}</h3>
+            <p className="text-slate-300 text-sm leading-relaxed">{blueprints[activeTab].desc}</p>
+            <div className="flex flex-wrap gap-2 pt-2">
+              {blueprints[activeTab].tags.map((t, i) => (
+                <span key={i} className="bg-slate-800 text-slate-300 text-xs font-mono px-2.5 py-1 rounded">{t}</span>
               ))}
             </div>
           </div>
-        </section>
-
-        <section id="projects">
-          <div className="container">
-            <div className="section-head">
-              <h2>Projects</h2>
-              <p className="muted">Selected work highlighting full stack capabilities.</p>
+          
+          <div className="bg-[#0f172a]/60 border border-slate-800 p-5 rounded-xl flex flex-col justify-between">
+            <div className="text-xs text-slate-400 font-mono space-y-1">
+              <div className="text-sky-400 font-bold uppercase mb-2">{blueprints[activeTab].metricTitle}</div>
+              {blueprints[activeTab].metrics.map((m, i) => <div key={i}>{m}</div>)}
             </div>
-            <div className="projects">
-              {items.map((p) => (
-                <article className="card project" key={p.title}>
-                  <h3>{p.title}</h3>
-                  <p>{p.description}</p>
-                  <div className="techline">
-                    {p.tech.map((t) => (
-                      <span key={t}>{t}</span>
-                    ))}
-                  </div>
-                  <div className="links">
-                    <a className="btn" href={p.github} target="_blank" rel="noreferrer">
-                      <GitHubIcon /> Code
-                    </a>
-                    {p.live && p.live.startsWith('http') ? (
-                      <a className="btn" href={p.live} target="_blank" rel="noreferrer">
-                        Website
-                      </a>
-                    ) : null}
-                  </div>
-                </article>
-              ))}
-            </div>
+            <a
+              href={blueprints[activeTab].url}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-4 flex items-center justify-center bg-[#1e293b] hover:bg-slate-700 text-white font-medium text-xs py-2 px-4 rounded-lg border border-slate-700 transition space-x-2"
+            >
+              <GithubIcon className="w-4 h-4" />
+              <span>View Repository</span>
+            </a>
           </div>
-        </section>
-
-        <section id="experience">
-          <div className="container">
-            <div className="section-head">
-              <h2>Experience</h2>
-              <p className="muted">Professional background and hands-on experience.</p>
-            </div>
-            <div className="card">
-              <div className="timeline">
-                <div className="tl-item">
-                  <div className="tl-title">
-                    <strong>Cloud Engineering (AWS, Azure, GCP)</strong>
-                    <span>2025 — Present</span>
-                  </div>
-                  <div className="tl-body">
-                    <ul className="mt-2 list-disc space-y-1 pl-5">
-                      <li>AWS Cloud Engineering across EC2, Lambda, S3, RDS, and VPC networking (security groups, subnets, routing).</li>
-                      <li>Infrastructure as Code (IaC) to provision repeatable environments and reduce manual drift (Terraform / CloudFormation).</li>
-                      <li>Azure experience building and operating cloud workloads (App Service, Functions, Storage, Key Vault) and deployments (Bicep/ARM).</li>
-                      <li>GCP experience delivering containerized and serverless workloads (Cloud Run, Cloud Storage, IAM, VPC) with least-privilege access.</li>
-                    </ul>
-                  </div>
-                </div>
-                <div className="tl-item">
-                  <div className="tl-title">
-                    <strong>Frontend & Client-Side Development Skills</strong>
-                    <span>2024 — Present</span>
-                  </div>
-                  <div className="tl-body">
-                    <ul className="mt-2 list-disc space-y-1 pl-5">
-                      <li>Designed and implemented responsive user interfaces using HTML5 and CSS3, with a mobile-first approach.</li>
-                      <li>Built dynamic client-side functionality in JavaScript (ES6+) for form validation, DOM manipulation, and async data fetching.</li>
-                      <li>Used modern CSS frameworks (Tailwind CSS / Bootstrap) to accelerate styling and keep visual consistency.</li>
-                      <li>Built reusable React components and managed state with hooks for a smooth user experience.</li>
-                      <li>Integrated third-party APIs and services to enhance product capabilities.</li>
-                      <li>Used Git/GitHub workflows (branching, PRs, reviews) for feature development.</li>
-                    </ul>
-                  </div>
-                </div>
-                <div className="tl-item">
-                  <div className="tl-title">
-                    <strong>Backend & Core Logic (C# and .NET)</strong>
-                    <span>2024 — Present</span>
-                  </div>
-                  <div className="tl-body">
-                    <ul className="mt-2 list-disc space-y-1 pl-5">
-                      <li>Built RESTful APIs with C# and ASP.NET Core to support CRUD operations and serve data to the frontend.</li>
-                      <li>Applied OOP principles to structure business logic with clear separation of concerns and maintainable services.</li>
-                      <li>Worked with routing, dependency injection, and service layers in .NET to keep code modular and testable.</li>
-                      <li>Implemented basic security measures like validation and safe configuration handling for sensitive data.</li>
-                      <li>Used Entity Framework Core for database access, migrations, and model-driven development.</li>
-                    </ul>
-                  </div>
-                </div>
-                <div className="tl-item">
-                  <div className="tl-title">
-                    <strong>Data Management & Project Execution</strong>
-                    <span>2024 — Present</span>
-                  </div>
-                  <div className="tl-body">
-                    <ul className="mt-2 list-disc space-y-1 pl-5">
-                      <li>Developed and optimised SQL queries (joins, aggregations, subqueries, stored procedures) for efficient data access.</li>
-                      <li>Designed relational schemas in SQL Server/MySQL with normalization to maintain integrity and consistency.</li>
-                      <li>Performed data migration and seeding for reliable local and test environments.</li>
-                      <li>Worked through the SDLC with daily stand-ups, sprint reviews, and retrospectives.</li>
-                      <li>Applied Agile (Scrum) to prioritize work and track progress using tools like Trello or Azure DevOps.</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="contact">
-          <div className="container">
-            <div className="section-head">
-              <h2>Contact</h2>
-              <p className="muted">Open to full-time roles, freelance, and collaborations.</p>
-            </div>
-            <div className="card contact-card">
-              <div>
-                <ContactForm />
-              </div>
-              <div className="mt-3 flex items-center gap-2">
-                <a className="btn" href={githubUrl} target="_blank" rel="noreferrer">
-                  <GitHubIcon /> GitHub
-                </a>
-                <a className="btn" href={linkedinUrl} target="_blank" rel="noreferrer">
-                  <LinkedInIcon /> LinkedIn
-                </a>
-              </div>
-            </div>
-          </div>
-        </section>
+        </div>
       </main>
 
-      <footer>
-        <div className="container footer-row flex justify-between gap-4 flex-wrap">
-          <div>
-            © {year} <span className="footer-name">{name}</span>. All rights reserved.
+      {/* Technical Skill Matrix */}
+      <section id="skills" className="bg-[#1e293b]/20 border-t border-slate-800 py-12 px-6">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-2xl font-bold text-white mb-8 text-center">Core Technical Infrastructure Matrix</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            <div className="p-5 bg-[#1e293b] rounded-xl border border-slate-800 space-y-2">
+              <div className="font-bold text-white text-sm flex items-center"><Cloud className="text-sky-400 w-4 h-4 mr-2" /> Cloud Administration</div>
+              <p className="text-xs text-slate-400">VPC Topology, IAM Policies, EC2 Fleet Isolation, RDS Multi-AZ Tuning, AWS CloudWatch Analytics Logs.</p>
+            </div>
+            <div className="p-5 bg-[#1e293b] rounded-xl border border-slate-800 space-y-2">
+              <div className="font-bold text-white text-sm flex items-center"><Code className="text-emerald-400 w-4 h-4 mr-2" /> Infrastructure as Code</div>
+              <p className="text-xs text-slate-400">Declarative Multi-Account HCL Terraform Enterprise State Backend Locking, AWS CDK Scripting Templates.</p>
+            </div>
+            <div className="p-5 bg-[#1e293b] rounded-xl border border-slate-800 space-y-2">
+              <div className="font-bold text-white text-sm flex items-center"><Terminal className="text-amber-400 w-4 h-4 mr-2" /> System Automation</div>
+              <p className="text-xs text-slate-400">High-yield Python Boto3 API pagination processing handlers, Linux administrative utility shell workflows (Bash).</p>
+            </div>
           </div>
-          <div className="social">
-            <a href={githubUrl} target="_blank" rel="noreferrer" aria-label="GitHub">
-              <GitHubIcon />
+        </div>
+      </section>
+
+      {/* Footer Element Matrix */}
+      <footer className="border-t border-slate-800 bg-[#0f172a] px-6 py-8">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+          <div>
+            &copy; 2026 Enterprise Cloud Operations Portfolio. Live Production Cluster Mode.
+          </div>
+          <div className="flex items-center space-x-4">
+            <a 
+              href="https://github.com/Jolaboy" 
+              target="_blank" 
+              rel="noreferrer" 
+              className="p-2 bg-[#1e293b]/40 hover:bg-[#1e293b] rounded-lg border border-slate-800 hover:border-slate-700 text-slate-400 hover:text-white transition flex items-center space-x-1.5"
+              title="External GitHub Platform Hook"
+            >
+              <GithubIcon className="w-4 h-4" />
+              <span className="font-mono">GitHub</span>
             </a>
-            <a href={linkedinUrl} target="_blank" rel="noreferrer" aria-label="LinkedIn">
-              <LinkedInIcon />
+            <a 
+              href="https://www.linkedin.com/in/amadou-jarju/" 
+              target="_blank" 
+              rel="noreferrer" 
+              className="p-2 bg-[#1e293b]/40 hover:bg-[#1e293b] rounded-lg border border-slate-800 hover:border-slate-700 text-slate-400 hover:text-sky-400 transition flex items-center space-x-1.5"
+              title="External LinkedIn Protocol Anchor"
+            >
+              <LinkedinIcon className="w-4 h-4" />
+              <span className="font-mono">LinkedIn</span>
             </a>
           </div>
         </div>
       </footer>
     </div>
-  );
-}
-
-/** Derives initials for avatar/badge from a full name (fallback is "AJ"). */
-function initials(fullName: string): string {
-  const parts = String(fullName || '')
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((s) => s[0]?.toUpperCase() ?? '');
-  return parts.join('') || 'AJ';
-}
-
-function GitHubIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg className="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden {...props}>
-      <path d="M12 .5A11.5 11.5 0 0 0 .6 12.3c0 5.24 3.4 9.68 8.12 11.26.6.1.82-.26.82-.58l-.02-2.05c-3.3.73-4-1.6-4-1.6-.56-1.44-1.37-1.83-1.37-1.83-1.12-.77.09-.76.09-.76 1.24.09 1.9 1.28 1.9 1.28 1.1 1.91 2.88 1.36 3.58 1.04.11-.82.43-1.36.78-1.67-2.64-.31-5.41-1.36-5.41-6.06 0-1.34.47-2.44 1.25-3.3-.13-.31-.54-1.57.12-3.28 0 0 1.01-.33 3.31 1.26a11.5 11.5 0 0 1 6.02 0c2.29-1.6 3.3-1.26 3.3-1.26.67 1.71.26 2.97.13 3.28.79.86 1.25 1.96 1.25 3.3 0 4.72-2.78 5.74-5.43 6.05.44.38.84 1.1.84 2.22l-.01 3.29c0 .32.22.69.83.58A11.5 11.5 0 0 0 23.4 12.3 11.5 11.5 0 0 0 12 .5z" />
-    </svg>
-  );
-}
-
-function LinkedInIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg className="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden {...props}>
-      <path d="M4.98 3.5a2.5 2.5 0 1 0 0 4.99 2.5 2.5 0 0 0 0-4.99zM3 9h4v12H3zM14.5 9c-2.21 0-3.5 1.2-3.5 3.08V21h-4V9h4v1.76S11.86 9 14.7 9c3.03 0 5.3 1.97 5.3 6.2V21h-4v-5.2c0-2.4-.86-3.8-2.7-3.8z" />
-    </svg>
   );
 }
