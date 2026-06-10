@@ -111,7 +111,7 @@ export default function FullStackPortfolio({ apiUrl }: ContactFormProps) {
       tags: ["AWS Bedrock", "VPC Lattice", "ECS Fargate", "Terraform"],
       metricTitle: "Security Guardrails",
       metrics: ["• Auth Type: AWS_IAM", "• Target: Claude 3.5 Sonnet", "• Injections Blocked: Native"],
-      url: "https://github.com/Jolaboy/-edge-global-gateway"
+      url: "https://github.com/Jolaboy/ai-agent-orchestrator"
     },
     gitops: {
       title: "Zero-Trust Multi-Cluster GitOps Platform Engine",
@@ -135,7 +135,7 @@ export default function FullStackPortfolio({ apiUrl }: ContactFormProps) {
       tags: ["Cloudflare Workers", "V8 Isolation Engine", "DynamoDB Global Tables", "TypeScript"],
       metricTitle: "Performance Metrics",
       metrics: ["• Ingress Latency: <10ms", "• Topology: Active-Active", "• Sync Layer: Dynamo Streams"],
-      url: "https://github.com/Jolaboy/-edge-global-gateway"
+      url: "https://github.com/Jolaboy/edge-global-gateway"
     }
   };
 
@@ -397,7 +397,7 @@ export default function FullStackPortfolio({ apiUrl }: ContactFormProps) {
             <a 
               href="https://github.com/Jolaboy" 
               target="_blank" 
-              rel="noreferrer" 
+              rel="noreferrer noopener" 
               className="p-2 bg-[#1e293b]/40 hover:bg-[#1e293b] rounded-lg border border-slate-800 hover:border-slate-700 text-slate-400 hover:text-white transition flex items-center space-x-1.5"
               title="External GitHub Platform Hook"
             >
@@ -407,7 +407,7 @@ export default function FullStackPortfolio({ apiUrl }: ContactFormProps) {
             <a 
               href="https://www.linkedin.com/in/amadou-jarju/" 
               target="_blank" 
-              rel="noreferrer" 
+              rel="noreferrer noopener" 
               className="p-2 bg-[#1e293b]/40 hover:bg-[#1e293b] rounded-lg border border-slate-800 hover:border-slate-700 text-slate-400 hover:text-sky-400 transition flex items-center space-x-1.5"
               title="External LinkedIn Protocol Anchor"
             >
