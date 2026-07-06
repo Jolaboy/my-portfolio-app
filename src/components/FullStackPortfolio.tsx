@@ -8,6 +8,7 @@ import {
   Cloud, 
   Code, 
   Mail, 
+  MapPin,
   X, 
   Loader2 
 } from 'lucide-react';
@@ -276,8 +277,12 @@ export default function FullStackPortfolio({ apiUrl }: ContactFormProps) {
             <span>Available for Opportunities</span>
           </div>
           <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight">
-            Hi, I&apos;m a <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-blue-400">Cloud & DevOps Platform Engineer</span>
+            Hi, I&apos;m <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-blue-400">Amadou Jarju</span>, a Cloud & DevOps Platform Engineer
           </h1>
+          <div className="flex items-center space-x-2 text-slate-400 text-sm">
+            <MapPin className="w-4 h-4 text-sky-400" />
+            <span>United Kingdom</span>
+          </div>
           <p className="text-slate-400 max-w-xl leading-relaxed text-sm">
             Specializing in zero-trust multi-cluster operations, serverless real-time data streaming architectures, and multi-agent AI framework deployment boundaries. 
           </p>
@@ -391,7 +396,7 @@ export default function FullStackPortfolio({ apiUrl }: ContactFormProps) {
       <footer className="border-t border-slate-800 bg-[#0f172a] px-6 py-8">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
           <div>
-            &copy; 2026 Enterprise Cloud Operations Portfolio. Live Production Cluster Mode.
+            &copy; Amadou Jarju | 2026 Enterprise Cloud Operations Portfolio. Live Production Cluster Mode.
           </div>
           <div className="flex items-center space-x-4">
             <a 
